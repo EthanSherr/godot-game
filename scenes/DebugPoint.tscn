@@ -1,0 +1,17 @@
+[gd_scene load_steps=2 format=3 uid="uid://c2bvynfoef81l"]
+
+[ext_resource type="Script" path="res://scripts/DebugPoint.cs" id="1_s8xba"]
+
+[node name="DebugPoint" type="Node2D"]
+script = ExtResource("1_s8xba")
+
+[node name="Line2D" type="Line2D" parent="."]
+points = PackedVector2Array(0, 0, 17, 0)
+width = 1.0
+default_color = Color(1, 0, 0, 1)
+
+[node name="Line2D" type="Line2D" parent="Line2D"]
+rotation = -1.57098
+points = PackedVector2Array(0, 0, 17, 0)
+width = 1.0
+default_color = Color(0, 1, 0, 1)

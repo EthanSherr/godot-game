@@ -145,7 +145,7 @@ sources/1 = SubResource("TileSetAtlasSource_kh1y6")
 [node name="Game" type="Node2D"]
 
 [node name="Player" parent="." instance=ExtResource("2_35l2k")]
-position = Vector2(-1, -2)
+position = Vector2(29, 1)
 Friction = 800.0
 
 [node name="Camera2D" type="Camera2D" parent="Player"]
@@ -153,5 +153,6 @@ zoom = Vector2(3, 3)
 position_smoothing_enabled = true
 
 [node name="TileMapLayer" type="TileMapLayer" parent="."]
-tile_map_data = PackedByteArray("AAAAAAAAAQABAAEAAAADAAAAAQABAAEAAAAJAAAAAQABAAEAAAAPAAAAAQABAAEAAAAFAPz/AQABAAEAAAAIAPv/AQABAAEAAAALAPv/AQABAAEAAAA=")
+position = Vector2(4, 3)
+tile_map_data = PackedByteArray("AAAAAAAAAQABAAEAAAADAAAAAQABAAEAAAAJAAAAAQABAAEAAAAPAAAAAQABAAEAAAAGAAAAAQABAAEAAAADAP3/AQABAAEAAAA=")
 tile_set = SubResource("TileSet_x8654")
