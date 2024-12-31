@@ -26,3 +26,9 @@ points = PackedVector2Array(4.05312e-06, 0, 72, 0)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, -9)
 shape = SubResource("RectangleShape2D_6r0om")
+
+[node name="LadderDetector" type="RayCast2D" parent="."]
+position = Vector2(0, -8)
+target_position = Vector2(0, -5)
+collision_mask = 2
+hit_from_inside = true

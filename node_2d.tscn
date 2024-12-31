@@ -72,6 +72,7 @@ texture = ExtResource("2_ywhyu")
 2:9/0 = 0
 3:9/0 = 0
 5:9/0 = 0
+5:9/0/physics_layer_1/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
 7:9/0 = 0
 8:9/0 = 0
 9:9/0 = 0
@@ -91,6 +92,7 @@ texture = ExtResource("2_ywhyu")
 1:11/0 = 0
 2:11/0 = 0
 5:11/0 = 0
+5:11/0/physics_layer_1/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
 7:11/0 = 0
 8:11/0 = 0
 9:11/0 = 0
@@ -140,19 +142,21 @@ texture = ExtResource("2_ywhyu")
 
 [sub_resource type="TileSet" id="TileSet_x8654"]
 physics_layer_0/collision_layer = 1
+physics_layer_1/collision_layer = 2
+physics_layer_1/collision_mask = 2
 sources/1 = SubResource("TileSetAtlasSource_kh1y6")
 
 [node name="Game" type="Node2D"]
+
+[node name="TileMapLayer" type="TileMapLayer" parent="."]
+position = Vector2(4, 2)
+tile_map_data = PackedByteArray("AAAAAAAAAQABAAEAAAADAAAAAQABAAEAAAAJAAAAAQABAAEAAAAPAAAAAQABAAEAAAAGAAAAAQABAAEAAAADAP3/AQABAAEAAAADAPz/AQAFAAsAAAADAPv/AQAFAAkAAAADAPr/AQAFAAkAAAA=")
+tile_set = SubResource("TileSet_x8654")
 
 [node name="Player" parent="." instance=ExtResource("2_35l2k")]
 position = Vector2(29, 1)
 Friction = 800.0
 
 [node name="Camera2D" type="Camera2D" parent="Player"]
-zoom = Vector2(3, 3)
+zoom = Vector2(3.5, 3.5)
 position_smoothing_enabled = true
-
-[node name="TileMapLayer" type="TileMapLayer" parent="."]
-position = Vector2(4, 3)
-tile_map_data = PackedByteArray("AAAAAAAAAQABAAEAAAADAAAAAQABAAEAAAAJAAAAAQABAAEAAAAPAAAAAQABAAEAAAAGAAAAAQABAAEAAAADAP3/AQABAAEAAAA=")
-tile_set = SubResource("TileSet_x8654")

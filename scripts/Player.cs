@@ -3,30 +3,42 @@ using Godot;
 
 public partial class Player : CharacterBody2D
 {
-    [Export]
-    public float Speed = 150f; // Maximum horizontal speed
+    private static string InputUp = "ui_up";
+
+    private static string InputDown = "ui_down";
+
+    private static string InputJump = "ui_select";
+    private static string InputRight = "ui_right";
+    private static string InputLeft = "ui_left";
 
     [Export]
-    public float Acceleration = 600f; // Acceleration rate
+    public float Speed = 120f; // Maximum horizontal speed
+
+    [Export]
+    public float Acceleration = 800f; // Acceleration rate
 
     [Export]
     public float Friction = 600f; // Deceleration rate
 
     [Export]
-    public float Gravity = 1000f; // Gravity strength
+    public float Gravity = 1000f;
 
+    // state tracking for jumping
     private bool isJumping = false;
     private float jumpTime = 0f;
 
     private RayCast2D ledgeDetector;
     private Sprite2D body;
 
-    // holding reference to original body scale, 0.125, 0.125
+    // The original Scale of the graphic representation
     private Vector2 originalBodyScale;
+
+    private RayCast2D ladderDetector;
 
     public override void _Ready()
     {
         ledgeDetector = GetNode<RayCast2D>("Body/LedgeDetector");
+        ladderDetector = GetNode<RayCast2D>("LadderDetector");
         body = GetNode<Sprite2D>("Body");
         originalBodyScale = body.Scale;
     }
@@ -37,6 +49,8 @@ public partial class Player : CharacterBody2D
 
         ApplyLedgeGrab(ref velocity, delta);
 
+        ApplyClimb(ref velocity, delta);
+
         ApplyHorizontalVelocity(ref velocity, delta);
         ApplyThresholdJump(ref velocity, delta);
         ApplyGravity(ref velocity, delta);
@@ -46,15 +60,6 @@ public partial class Player : CharacterBody2D
         Velocity = velocity;
         MoveAndSlide();
     }
-
-    [Export]
-    public float JumpHoldTime = 0.3f; // Maximum time jump can be held
-
-    [Export]
-    public float MaxFallSpeed = 1000f; // Terminal velocity
-
-    [Export]
-    public float JumpHoldGravityScale = 0.3f; // Gravity scale when holding jump
 
     private static float Mult = 1f;
 
@@ -68,15 +73,12 @@ public partial class Player : CharacterBody2D
     public float HighHop = -300f * Mult;
 
     [Export]
-    public float MaxJumpTime = 0.3f * Mult;
-
-    [Export]
     public float TimeBetweenJumps = 0.048f;
 
     private bool ApplyThresholdJump(ref Vector2 velocity, double delta)
     {
         // start jumping?
-        if (Input.IsActionJustPressed("ui_up") && CanJump())
+        if (Input.IsActionJustPressed(InputJump) && CanJump())
         {
             isJumping = true;
             jumpTime = 0.0f;
@@ -85,6 +87,10 @@ public partial class Player : CharacterBody2D
             {
                 // end ledge grabbing from a jump
                 isLedgeGrabbing = false;
+            }
+            if (isClimbing)
+            {
+                isClimbing = false;
             }
         }
 
@@ -104,13 +110,13 @@ public partial class Player : CharacterBody2D
         {
             velocity.Y = MediumHop;
         }
-        else
+        else if (jumpTime < 3 * TimeBetweenJumps)
         {
             velocity.Y = HighHop;
             isMaxJump = true;
         }
 
-        if (isMaxJump || Input.IsActionJustReleased("ui_up") || jumpTime > MaxJumpTime)
+        if (isMaxJump || !Input.IsActionPressed(InputJump))
         {
             isJumping = false;
             jumpTime = 0.0f;
@@ -121,7 +127,7 @@ public partial class Player : CharacterBody2D
 
     private bool CanJump()
     {
-        return IsOnFloor() || isLedgeGrabbing;
+        return IsOnFloor() || isLedgeGrabbing || isClimbing;
     }
 
     private void ApplyHorizontalVelocity(ref Vector2 velocity, double delta)
@@ -129,15 +135,7 @@ public partial class Player : CharacterBody2D
         if (isLedgeGrabbing)
             return;
         // Handle input for horizontal movement
-        int direction = 0;
-        if (Input.IsActionPressed("ui_right"))
-        {
-            direction = +1;
-        }
-        else if (Input.IsActionPressed("ui_left"))
-        {
-            direction = -1;
-        }
+        int direction = GetHorizontalInput();
 
         if (direction != 0)
         {
@@ -159,7 +157,7 @@ public partial class Player : CharacterBody2D
 
     private void ApplyGravity(ref Vector2 velocity, double delta)
     {
-        if (isLedgeGrabbing)
+        if (isLedgeGrabbing || isClimbing)
             return;
         velocity.Y += Gravity * (float)delta;
     }
@@ -171,22 +169,27 @@ public partial class Player : CharacterBody2D
         // test if we can begin ledge grabbing
         if (!isLedgeGrabbing && !IsOnFloor() && Velocity.Y > 0)
         {
-            if (Input.IsActionPressed("ui_up") && ledgeDetector.IsColliding()) //&& !freeSpaceChecker.IsColliding())
+            int playerDirection = GetHorizontalInput();
+            // TODO, channel?
+            Vector2 ledgeDetectorCollision = ledgeDetector.GetCollisionPoint();
+            float collisionOffsetX = ledgeDetectorCollision.X - GlobalPosition.X;
+            int directionOfLedge = Math.Sign(collisionOffsetX);
+
+            if (ledgeDetector.IsColliding() && directionOfLedge == playerDirection) //&& !freeSpaceChecker.IsColliding())
             {
                 isLedgeGrabbing = true;
                 velocity = Vector2.Zero;
 
-                Vector2 collision = ledgeDetector.GetCollisionPoint();
-                DebugPoint.Create(collision, GetTree().Root);
+                DebugPoint.Create(ledgeDetectorCollision, GetTree().Root);
 
                 GD.Print("Begin ledge grab");
                 // Snap to grab position
-                Vector2 collisionOffset = collision - ledgeDetector.GlobalPosition;
+                Vector2 collisionOffset = ledgeDetectorCollision - ledgeDetector.GlobalPosition;
                 GlobalPosition = GlobalPosition + collisionOffset;
             }
         }
         // test to exit ledge grab
-        else if (isLedgeGrabbing && Input.IsActionJustPressed("ui_down"))
+        else if (isLedgeGrabbing && Input.IsActionJustPressed(InputDown))
         {
             isLedgeGrabbing = false;
             velocity.Y = 100;
@@ -197,11 +200,68 @@ public partial class Player : CharacterBody2D
         return isLedgeGrabbing;
     }
 
+    private int GetHorizontalInput()
+    {
+        int direction = 0;
+        if (Input.IsActionPressed(InputRight))
+        {
+            direction += 1;
+        }
+        else if (Input.IsActionPressed(InputLeft))
+        {
+            direction += -1;
+        }
+        return direction;
+    }
+
     private void ApplyPlayerOrientation(ref Vector2 velocity)
     {
         int direction = Math.Sign(velocity.X);
         if (direction == 0)
             return;
         body.Scale = new Vector2(direction * originalBodyScale.X, originalBodyScale.Y);
+    }
+
+    [Export]
+    private float climbUpSpeed = -50f;
+
+    [Export]
+    private float climbDownSpeed = 200f;
+
+    private bool isClimbing = false;
+
+    private void ApplyClimb(ref Vector2 velocity, double delta)
+    {
+        // no ladder climbing while ledge grabbing
+        if (isLedgeGrabbing)
+            return;
+
+        if (!isClimbing && Input.IsActionPressed(InputUp) && ladderDetector.IsColliding())
+        {
+            GD.Print("Climbing: start");
+            isClimbing = true;
+        }
+
+        if (isClimbing && !ladderDetector.IsColliding())
+        {
+            GD.Print("Climbing: stop");
+            isClimbing = false;
+        }
+
+        if (!isClimbing)
+            return;
+
+        if (Input.IsActionPressed(InputUp))
+        {
+            velocity.Y = climbUpSpeed;
+        }
+        else if (Input.IsActionPressed(InputDown))
+        {
+            velocity.Y = climbDownSpeed;
+        }
+        else
+        {
+            velocity.Y = 0;
+        }
     }
 }
