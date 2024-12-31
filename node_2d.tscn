@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=4 uid="uid://cj32j4uiejkns"]
+[gd_scene load_steps=6 format=4 uid="uid://cj32j4uiejkns"]
 
 [ext_resource type="PackedScene" uid="uid://by7n13mtf7h4a" path="res://Player.tscn" id="2_35l2k"]
 [ext_resource type="Texture2D" uid="uid://c8m0egj4anmmh" path="res://assets/Dungeon Tile Set.png" id="2_ywhyu"]
+[ext_resource type="PackedScene" uid="uid://d0w3abeo72obg" path="res://scenes/FogOfWar.tscn" id="3_4cxc6"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_kh1y6"]
 texture = ExtResource("2_ywhyu")
@@ -160,3 +161,6 @@ Friction = 800.0
 [node name="Camera2D" type="Camera2D" parent="Player"]
 zoom = Vector2(4.5, 4.5)
 position_smoothing_enabled = true
+
+[node name="FogOfWar" parent="." instance=ExtResource("3_4cxc6")]
+position = Vector2(121, -22)

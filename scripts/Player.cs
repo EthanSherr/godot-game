@@ -33,12 +33,16 @@ public partial class Player : CharacterBody2D
 
     private RayCast2D ladderDetector;
 
+    private FogOfWar fogOfWar;
+
     public override void _Ready()
     {
         ledgeDetector = GetNode<RayCast2D>("Body/LedgeDetector");
         ladderDetector = GetNode<RayCast2D>("LadderDetector");
         body = GetNode<Sprite2D>("Body");
         originalBodyScale = body.Scale;
+
+        fogOfWar = GetParent().GetNode<FogOfWar>("FogOfWar");
     }
 
     public override void _PhysicsProcess(double delta)
@@ -57,6 +61,14 @@ public partial class Player : CharacterBody2D
 
         Velocity = velocity;
         MoveAndSlide();
+    }
+
+    public override void _Process(double delta)
+    {
+        if (fogOfWar != null)
+        {
+            fogOfWar.Reveal(GlobalPosition, 75);
+        }
     }
 
     private static float Mult = 1f;

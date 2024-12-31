@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://d0w3abeo72obg"]
+
+[ext_resource type="Script" path="res://scripts/FogOfWar.cs" id="1_36pni"]
+
+[node name="fog" type="Sprite2D"]
+script = ExtResource("1_36pni")
