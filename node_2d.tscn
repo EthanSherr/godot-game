@@ -158,5 +158,5 @@ position = Vector2(29, 1)
 Friction = 800.0
 
 [node name="Camera2D" type="Camera2D" parent="Player"]
-zoom = Vector2(3.5, 3.5)
+zoom = Vector2(4.5, 4.5)
 position_smoothing_enabled = true

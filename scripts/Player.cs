@@ -4,9 +4,7 @@ using Godot;
 public partial class Player : CharacterBody2D
 {
     private static string InputUp = "ui_up";
-
     private static string InputDown = "ui_down";
-
     private static string InputJump = "ui_select";
     private static string InputRight = "ui_right";
     private static string InputLeft = "ui_left";
