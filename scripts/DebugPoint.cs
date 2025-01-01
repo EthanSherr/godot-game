@@ -4,7 +4,9 @@ public partial class DebugPoint : Node2D
 {
     private static PackedScene debugPointScene;
 
-    private int removeTimeout = 2;
+    private static float RemoveTimeout = 2;
+
+    private float removeTimeout = DebugPoint.RemoveTimeout;
 
     public override void _Ready()
     {
@@ -19,7 +21,7 @@ public partial class DebugPoint : Node2D
     }
 
     // Static method to create and place a DebugPoint
-    public static void Create(Vector2 position, Node context)
+    public static void Create(Vector2 position, Node context, float _removeTimeout)
     {
         debugPointScene ??= GD.Load<PackedScene>("res://scenes/DebugPoint.tscn");
 
@@ -27,7 +29,14 @@ public partial class DebugPoint : Node2D
         DebugPoint debugPointInstance = (DebugPoint)debugPointScene.Instantiate();
         debugPointInstance.GlobalPosition = position;
 
+        debugPointInstance.removeTimeout = _removeTimeout;
+
         // Add it to the specified parent or the scene root if no parent is provided
         context.AddChild(debugPointInstance);
+    }
+
+    public static void Create(Vector2 position, Node context)
+    {
+        Create(position, context, DebugPoint.RemoveTimeout);
     }
 }

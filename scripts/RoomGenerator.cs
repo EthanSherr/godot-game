@@ -1,0 +1,56 @@
+using System;
+using Godot;
+
+public partial class RoomGenerator : Node2D
+{
+    Vector2I MinDims = new Vector2I(5, 5);
+    Vector2I MaxDims = new Vector2I(125, 100);
+
+    float Radius = 300;
+
+    [Export]
+    private ulong Seed = 0;
+
+    private RandomNumberGenerator rng;
+
+    public override void _Ready()
+    {
+        rng = new RandomNumberGenerator();
+        rng.Seed = Seed;
+
+        for (int i = 0; i < 100; i++)
+        {
+            Vector2I dimension = GenerateRandomDims();
+            RoomVisualizer block = new RoomVisualizer
+            {
+                Width = dimension.X,
+                Height = dimension.Y,
+                Dim = 1,
+                BorderColor = new Color(1, 0, 0),
+                FillColor = new Color(0, 0, 1),
+                BorderThickness = 1,
+            };
+            block.Position = RandomPointInCircle(Radius);
+            AddChild(block);
+        }
+    }
+
+    public Vector2 RandomPointInCircle(float radius)
+    {
+        float theta = 2 * (float)Math.PI * rng.Randf();
+        float u = rng.Randf() + rng.Randf();
+        float r = u > 1 ? 2 - u : u;
+        return new Vector2(
+            radius * r * (float)Math.Cos(theta),
+            radius * r * (float)Math.Sin(theta)
+        );
+    }
+
+    public Vector2I GenerateRandomDims()
+    {
+        return new Vector2I(
+            rng.RandiRange(MinDims.X, MaxDims.X),
+            rng.RandiRange(MinDims.Y, MaxDims.Y)
+        );
+    }
+}
