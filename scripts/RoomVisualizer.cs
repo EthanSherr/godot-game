@@ -1,6 +1,6 @@
 using Godot;
 
-public partial class RoomVisualizer : Node2D
+public partial class RoomVisualizer : RigidBody2D
 {
     // Parameters for the rectangle
     [Export]
@@ -21,56 +21,43 @@ public partial class RoomVisualizer : Node2D
     [Export]
     public float BorderThickness = 2f;
 
-    private StaticBody2D staticBody;
-    private RectangleShape2D collisionShape;
+    private CollisionShape2D collisionShape;
 
     public override void _Ready()
     {
-        staticBody = new StaticBody2D();
-        collisionShape = new RectangleShape2D();
+        LockRotation = true;
+        FreezeMode = FreezeModeEnum.Kinematic;
+        collisionShape = new CollisionShape2D();
+        var shape = new RectangleShape2D { Size = GetSize() };
+        GravityScale = 0;
 
-        // Set collision shape dimensions
-        collisionShape.Size = new Vector2(Width * Dim / 2, Height * Dim / 2);
+        collisionShape.Shape = shape;
+        AddChild(collisionShape);
+        collisionShape.Disabled = true;
 
-        var shape = new CollisionShape2D { Shape = collisionShape };
-        staticBody.AddChild(shape);
-
-        // Add the StaticBody2D to this node
-        AddChild(staticBody);
+        var debugRect = new DebugRectangle
+        {
+            BorderColor = BorderColor,
+            BorderThickness = BorderThickness,
+            FillColor = FillColor,
+            Size = new Vector2(Width, Height),
+        };
+        AddChild(debugRect);
     }
 
-    public override void _Draw()
+    public void Activate()
     {
-        // Calculate actual dimensions
-        float actualWidth = Width * Dim;
-        float actualHeight = Height * Dim;
-
-        // Rectangle position and size
-        Rect2 rect = new Rect2(0, 0, actualWidth, actualHeight);
-
-        // Draw the filled rectangle
-        DrawRect(rect, FillColor);
-
-        // Draw the border
-        DrawStyleboxBorder(rect, BorderColor, BorderThickness);
+        collisionShape.Disabled = false;
     }
 
-    private void DrawStyleboxBorder(Rect2 rect, Color color, float thickness)
+    public Rect2 GetRect()
     {
-        // Draw the border lines manually to simulate a border
-        DrawLine(rect.Position, rect.Position + new Vector2(rect.Size.X, 0), color, thickness); // Top
-        DrawLine(rect.Position, rect.Position + new Vector2(0, rect.Size.Y), color, thickness); // Left
-        DrawLine(
-            rect.Position + new Vector2(0, rect.Size.Y),
-            rect.Position + rect.Size,
-            color,
-            thickness
-        ); // Bottom
-        DrawLine(
-            rect.Position + new Vector2(rect.Size.X, 0),
-            rect.Position + rect.Size,
-            color,
-            thickness
-        ); // Right
+        var size = GetSize();
+        return new Rect2(Position - size / 2, size);
+    }
+
+    public Vector2 GetSize()
+    {
+        return new Vector2(Width * Dim, Height * Dim);
     }
 }

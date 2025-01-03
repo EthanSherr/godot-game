@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Godot;
 
 public partial class RoomGenerator : Node2D
@@ -13,12 +15,19 @@ public partial class RoomGenerator : Node2D
 
     private RandomNumberGenerator rng;
 
+    private List<RoomVisualizer> rooms = new List<RoomVisualizer>();
+
     public override void _Ready()
     {
         rng = new RandomNumberGenerator();
         rng.Seed = Seed;
 
-        for (int i = 0; i < 100; i++)
+        GenerateRooms();
+    }
+
+    public async void GenerateRooms()
+    {
+        for (int i = 0; i < 150; i++)
         {
             Vector2I dimension = GenerateRandomDims();
             RoomVisualizer block = new RoomVisualizer
@@ -32,6 +41,14 @@ public partial class RoomGenerator : Node2D
             };
             block.Position = RandomPointInCircle(Radius);
             AddChild(block);
+
+            rooms.Add(block);
+            await Task.Delay(1);
+        }
+
+        foreach (var room in rooms)
+        {
+            room.Activate();
         }
     }
 
