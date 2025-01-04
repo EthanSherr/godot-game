@@ -16,7 +16,6 @@ public partial class DebugPoint : Node2D
 
     private void OnTimeout()
     {
-        GD.Print("Timeout reached removing");
         QueueFree();
     }
 

@@ -1,0 +1,20 @@
+[gd_scene load_steps=2 format=3 uid="uid://b4qglu1ucqph4"]
+
+[ext_resource type="Script" path="res://levels/tests/LineIntersectsTest.cs" id="1_kpp4r"]
+
+[node name="LineIntersectsTest" type="Node2D"]
+script = ExtResource("1_kpp4r")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(4, 4)
+
+[node name="p1" type="Marker2D" parent="."]
+position = Vector2(0, -57)
+
+[node name="p12" type="Marker2D" parent="."]
+position = Vector2(0, -40)
+
+[node name="p2" type="Marker2D" parent="."]
+
+[node name="p22" type="Marker2D" parent="."]
+position = Vector2(0, 18)

@@ -85,8 +85,35 @@ public partial class RoomGenerator : Node2D
                 selectedRooms.Add(room);
             }
         }
-
         GD.Print("selected rooms", selectedRooms.Count);
+
+        Dictionary<Vector2, int> centroidToRoomIndex = new Dictionary<Vector2, int>();
+        for (int i = 0; i < selectedRooms.Count; i++)
+        {
+            centroidToRoomIndex[selectedRooms[i].Position] = i;
+        }
+        List<Vector2> centroids = centroidToRoomIndex.Keys.ToList();
+
+        var triangulation = new OldDelaunayTriangulation();
+        var triangles = triangulation.Triangulate(centroids);
+
+        var debugDraw = new DebugDrawer();
+        AddChild(debugDraw);
+
+        foreach (var triangle in triangles)
+        {
+            var centroidA = triangle.A;
+            var centroidB = triangle.B;
+            var centroidC = triangle.C;
+
+            var roomA = rooms[centroidToRoomIndex[triangle.A]];
+            var roomB = rooms[centroidToRoomIndex[triangle.B]];
+            var roomC = rooms[centroidToRoomIndex[triangle.C]];
+
+            debugDraw.AddLine(centroidA, centroidB, new Color(1, 0, 0));
+            debugDraw.AddLine(centroidB, centroidC, new Color(1, 0, 0));
+            debugDraw.AddLine(centroidC, centroidA, new Color(1, 0, 0));
+        }
     }
 
     public Vector2 RandomPointInCircle(float radius)

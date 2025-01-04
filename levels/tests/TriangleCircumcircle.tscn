@@ -1,0 +1,18 @@
+[gd_scene load_steps=2 format=3 uid="uid://bajkbsqmdb5md"]
+
+[ext_resource type="Script" path="res://levels/tests/TriangleCircumcircle.cs" id="1_meut7"]
+
+[node name="TriangleCircumcircle" type="Node2D"]
+script = ExtResource("1_meut7")
+
+[node name="Marker2D" type="Marker2D" parent="."]
+position = Vector2(-92, -19)
+
+[node name="Marker2D2" type="Marker2D" parent="."]
+position = Vector2(91, 236)
+
+[node name="Marker2D3" type="Marker2D" parent="."]
+position = Vector2(-66, -206)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+rotation = 0.0178806
