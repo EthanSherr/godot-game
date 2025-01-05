@@ -4,8 +4,8 @@ using Godot;
 
 public struct Edge
 {
-    public readonly Vector2 A; // Readonly field
-    public readonly Vector2 B; // Readonly field
+    public readonly Vector2 A;
+    public readonly Vector2 B;
 
     public Edge(Vector2 a, Vector2 b)
     {
