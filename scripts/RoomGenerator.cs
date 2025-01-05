@@ -94,8 +94,8 @@ public partial class RoomGenerator : Node2D
         }
         List<Vector2> centroids = centroidToRoomIndex.Keys.ToList();
 
-        var triangulation = new OldDelaunayTriangulation();
-        var triangles = triangulation.Triangulate(centroids);
+        var triangulation = new DelaunayTriangulation(centroids);
+        var triangles = triangulation.Triangulate();
 
         var debugDraw = new DebugDrawer();
         AddChild(debugDraw);
