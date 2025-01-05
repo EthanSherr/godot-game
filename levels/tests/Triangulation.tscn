@@ -6,3 +6,51 @@
 script = ExtResource("1_j2fhf")
 
 [node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="Marker2D" type="Marker2D" parent="."]
+position = Vector2(-191, -242)
+
+[node name="Marker2D2" type="Marker2D" parent="."]
+position = Vector2(146, 192)
+
+[node name="Marker2D3" type="Marker2D" parent="."]
+position = Vector2(228, -219)
+
+[node name="Marker2D5" type="Marker2D" parent="."]
+position = Vector2(-121, -121)
+
+[node name="Marker2D6" type="Marker2D" parent="."]
+position = Vector2(-428, 216)
+
+[node name="Marker2D9" type="Marker2D" parent="."]
+position = Vector2(-416, -78)
+
+[node name="Marker2D10" type="Marker2D" parent="."]
+position = Vector2(-215, -17)
+
+[node name="Marker2D11" type="Marker2D" parent="."]
+position = Vector2(-3, -266)
+
+[node name="Marker2D12" type="Marker2D" parent="."]
+position = Vector2(-58, 106)
+
+[node name="Marker2D13" type="Marker2D" parent="."]
+position = Vector2(79, -127)
+
+[node name="Marker2D14" type="Marker2D" parent="."]
+position = Vector2(124, -38)
+
+[node name="Marker2D15" type="Marker2D" parent="."]
+position = Vector2(124, 46)
+
+[node name="Marker2D16" type="Marker2D" parent="."]
+position = Vector2(270, 151)
+
+[node name="Marker2D7" type="Marker2D" parent="."]
+position = Vector2(470, -101)
+
+[node name="Marker2D8" type="Marker2D" parent="."]
+position = Vector2(242, 34)
+
+[node name="Marker2D4" type="Marker2D" parent="."]
+position = Vector2(-219, 194)

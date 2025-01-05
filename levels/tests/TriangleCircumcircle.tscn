@@ -9,7 +9,7 @@ script = ExtResource("1_meut7")
 position = Vector2(-92, -19)
 
 [node name="Marker2D2" type="Marker2D" parent="."]
-position = Vector2(91, 236)
+position = Vector2(295, -204)
 
 [node name="Marker2D3" type="Marker2D" parent="."]
 position = Vector2(-66, -206)
