@@ -39,6 +39,12 @@ public class Graph<T>
         Add(b);
     }
 
+    public void AddBidirectional(T a, T b, float w)
+    {
+        Add(a, b, w);
+        Add(b, a, w);
+    }
+
     public void Add(T a)
     {
         getOrInitializeEdges(a);
