@@ -93,15 +93,14 @@ public class Graph<T>
             if (visited.Contains(edge.B))
                 continue;
 
-            minSpanningTree.Append(edge);
+            minSpanningTree.Add(edge);
             visited.Add(edge.B);
 
-            foreach (var (b, w) in map[edge.B])
+            foreach (var (c, w) in map[edge.B])
             {
-                if (visited.Contains(b))
+                if (visited.Contains(c))
                     continue;
-
-                minHeap.Enqueue(new Edge<T>(edge.B, b, w), w);
+                minHeap.Enqueue(new Edge<T>(edge.B, c, w), w);
             }
         }
 

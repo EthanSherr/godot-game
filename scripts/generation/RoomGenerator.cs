@@ -109,33 +109,21 @@ public partial class RoomGenerator : Node2D
             ddTriangles.AddLine(centroidB, centroidC, new Color(1, 0, 0));
             ddTriangles.AddLine(centroidC, centroidA, new Color(1, 0, 0));
         }
-        await Task.Delay(3 * 1000);
+        await Task.Delay(1 * 1000);
         ddTriangles.QueueFree();
 
         // link a graph of rooms,
         var graph = new Graph<Vector2>();
         foreach (var t in triangles)
         {
-            float wAB = t.A.DistanceSquaredTo(t.B);
-            graph.Add(t.A, t.B, wAB);
-            graph.Add(t.B, t.A, wAB);
-
-            float wBC = t.B.DistanceSquaredTo(t.C);
-            graph.Add(t.B, t.C, wBC);
-            graph.Add(t.C, t.B, wBC);
-
-            float wCA = t.C.DistanceSquaredTo(t.A);
-            graph.Add(t.C, t.A, wCA);
-            graph.Add(t.A, t.C, wCA);
-        }
-
-        foreach (var c in centroids)
-        {
-            GD.Print($"graph.Contains({c}): ${graph.Contains(c)}");
+            graph.AddBidirectional(t.A, t.B, t.A.DistanceSquaredTo(t.B));
+            graph.AddBidirectional(t.B, t.C, t.B.DistanceSquaredTo(t.C));
+            graph.AddBidirectional(t.C, t.A, t.C.DistanceSquaredTo(t.A));
         }
 
         // Compute MST
         var mst = graph.PrimMST();
+        GD.Print("Adding mst", mst.Count);
         var ddMst = new DebugDrawer();
         AddChild(ddMst);
         foreach (var edge in mst)
