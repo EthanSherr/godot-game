@@ -4,50 +4,70 @@ public partial class RoomVisualizer : RigidBody2D
 {
     // Parameters for the rectangle
     [Export]
-    public float Width = 10f;
+    public Vector2 Size = new Vector2(4f, 4f);
 
     [Export]
-    public float Height = 10f;
+    public int Dim = 16;
 
     [Export]
-    public int Dim = 16; // Scaling factor for screen space
+    public Color BorderColor
+    {
+        get { return debugRectangle.BorderColor; }
+        set { debugRectangle.BorderColor = value; }
+    }
 
     [Export]
-    public Color BorderColor = new Color(1, 1, 1); // White
+    public Color FillColor
+    {
+        get { return debugRectangle.FillColor; }
+        set { debugRectangle.FillColor = value; }
+    }
 
     [Export]
-    public Color FillColor = new Color(0.5f, 0.5f, 0.5f); // Gray
+    public float BorderThickness
+    {
+        get { return debugRectangle.BorderThickness; }
+        set { debugRectangle.BorderThickness = value; }
+    }
 
-    [Export]
-    public float BorderThickness = 2f;
+    private CollisionShape2D _collisionShape;
 
-    private CollisionShape2D collisionShape;
+    private DebugRectangle _debugRectangle;
+    private DebugRectangle debugRectangle
+    {
+        get
+        {
+            if (_debugRectangle == null)
+            {
+                _debugRectangle = new DebugRectangle();
+            }
+            return _debugRectangle;
+        }
+        set { _debugRectangle = value; }
+    }
+
+    public RoomVisualizer() { }
 
     public override void _Ready()
     {
         LockRotation = true;
         FreezeMode = FreezeModeEnum.Kinematic;
-        collisionShape = new CollisionShape2D();
+        _collisionShape = new CollisionShape2D();
         var shape = new RectangleShape2D { Size = GetSize() };
         GravityScale = 0;
 
-        collisionShape.Shape = shape;
-        AddChild(collisionShape);
-        collisionShape.Disabled = true;
+        _collisionShape.Shape = shape;
+        _collisionShape.Disabled = true;
 
-        var debugRect = new DebugRectangle
-        {
-            BorderColor = BorderColor,
-            BorderThickness = BorderThickness,
-            FillColor = FillColor,
-            Size = new Vector2(Width, Height),
-        };
-        AddChild(debugRect);
+        debugRectangle.Size = Size;
+
+        AddChild(_collisionShape);
+        AddChild(_debugRectangle);
     }
 
-    public void Activate()
+    public void SetCollisionEnabled(bool enabled)
     {
-        collisionShape.Disabled = false;
+        _collisionShape.Disabled = !enabled;
     }
 
     public Rect2 GetRect()
@@ -58,6 +78,6 @@ public partial class RoomVisualizer : RigidBody2D
 
     public Vector2 GetSize()
     {
-        return new Vector2(Width * Dim, Height * Dim);
+        return Size * Dim;
     }
 }

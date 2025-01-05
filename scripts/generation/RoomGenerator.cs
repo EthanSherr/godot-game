@@ -45,8 +45,7 @@ public partial class RoomGenerator : Node2D
             Vector2 dimension = GenerateNormalRadomRoomSize() * Dim;
             RoomVisualizer block = new RoomVisualizer
             {
-                Width = dimension.X,
-                Height = dimension.Y,
+                Size = dimension,
                 Dim = 1,
                 BorderColor = new Color(1, 0, 0),
                 FillColor = new Color(0, 0, 1),
@@ -56,7 +55,7 @@ public partial class RoomGenerator : Node2D
             AddChild(block);
 
             rooms.Add(block);
-            if (slowly)
+            if (slowly && i % 2 == 0)
             {
                 await Task.Delay(1);
             }
@@ -65,13 +64,27 @@ public partial class RoomGenerator : Node2D
         Vector2 meanSize = new Vector2();
         foreach (var room in rooms)
         {
-            room.Activate();
+            room.SetCollisionEnabled(true);
             meanSize += room.GetSize();
         }
         meanSize = meanSize / rooms.Count();
 
         bool success = await WaitUntilAllBodiesSleep(rooms, 5.0f);
         GD.Print("Finished Success: ", success);
+
+        await Task.Delay(1 * 1000);
+
+        foreach (var r in rooms)
+        {
+            r.SetCollisionEnabled(false);
+        }
+
+        // adjust all rooms to grid.
+        foreach (var room in rooms)
+        {
+            room.Position = (room.Position / Dim).Floor() * Dim;
+        }
+        GD.Print("Done snapping to grid");
 
         List<RoomVisualizer> selectedRooms = new List<RoomVisualizer>();
 
@@ -83,6 +96,8 @@ public partial class RoomGenerator : Node2D
             {
                 // select it!
                 selectedRooms.Add(room);
+                room.FillColor = new Color(0, 1, 0);
+                await Task.Delay(100);
             }
         }
         GD.Print("selected rooms", selectedRooms.Count);

@@ -5,16 +5,53 @@ public partial class DebugRectangle : Node2D
     [Export]
     public Vector2 Size;
 
-    [Export]
-    public Color BorderColor = new Color(1, 1, 1); // White
+    private Color _borderColor = new Color(0.5f, 0.5f, 0.5f);
 
     [Export]
-    public Color FillColor = new Color(0.5f, 0.5f, 0.5f); // Gray
+    public Color BorderColor
+    {
+        get => _borderColor;
+        set
+        {
+            if (_borderColor != value)
+            {
+                _borderColor = value;
+                QueueRedraw();
+            }
+        }
+    }
+
+    private Color _fillColor = new Color(0.5f, 0.5f, 0.5f);
 
     [Export]
-    public float BorderThickness = 2f;
+    public Color FillColor
+    {
+        get => _fillColor;
+        set
+        {
+            if (_fillColor != value)
+            {
+                _fillColor = value;
+                QueueRedraw();
+            }
+        }
+    }
 
-    public override void _Ready() { }
+    private float _borderThickness = 2f;
+
+    [Export]
+    public float BorderThickness
+    {
+        get => _borderThickness;
+        set
+        {
+            if (_borderThickness != value)
+            {
+                _borderThickness = value;
+                QueueRedraw();
+            }
+        }
+    }
 
     public override void _Draw()
     {
@@ -42,8 +79,8 @@ public partial class DebugRectangle : Node2D
         ); // Right
     }
 
-    public override void _Process(double delta)
-    {
-        QueueRedraw();
-    }
+    // public override void _Process(double delta)
+    // {
+    //     QueueRedraw();
+    // }
 }
