@@ -17,3 +17,12 @@ https://incolgames.itch.io/dungeon-platformer-tile-set-pixel-art
 # dungeon generation:
 https://www.gamedeveloper.com/programming/procedural-dungeon-generation-algorithm
 
+## delauny generation (01/04/2025)
+Bower Watson
+
+[wiki](https://en.wikipedia.org/wiki/Bowyer%E2%80%93Watson_algorithm?ref=gorillasun.de
+)
+
+[gorillasun](https://www.gorillasun.de/blog/bowyer-watson-algorithm-for-delaunay-triangulation/#wikipedias-bowyer-watson-pseudocode-snippet)
+
+## Minimum spanning truee

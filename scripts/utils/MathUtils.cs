@@ -1,3 +1,4 @@
+using System;
 using Godot;
 
 public static class MathUtils
@@ -92,5 +93,25 @@ public static class MathUtils
         float squaredRadius = center.DistanceSquaredTo(A);
 
         return (center, squaredRadius);
+    }
+
+    public static float NormalDistribution(float mean, float stddev, RandomNumberGenerator rng)
+    {
+        // Box-Muller transform
+        float u1 = rng.Randf();
+        float u2 = rng.Randf();
+        float z = Mathf.Sqrt(-2f * Mathf.Log(u1)) * Mathf.Cos(2f * Mathf.Pi * u2);
+        return mean + z * stddev;
+    }
+
+    public static Vector2 RandomPointInCircle(float radius, RandomNumberGenerator rng)
+    {
+        float theta = 2 * (float)Math.PI * rng.Randf();
+        float u = rng.Randf() + rng.Randf();
+        float r = u > 1 ? 2 - u : u;
+        return new Vector2(
+            radius * r * (float)Math.Cos(theta),
+            radius * r * (float)Math.Sin(theta)
+        );
     }
 }

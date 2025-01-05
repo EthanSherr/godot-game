@@ -52,7 +52,7 @@ public partial class RoomGenerator : Node2D
                 FillColor = new Color(0, 0, 1),
                 BorderThickness = 1,
             };
-            block.Position = RandomPointInCircle(Radius);
+            block.Position = MathUtils.RandomPointInCircle(Radius, rng);
             AddChild(block);
 
             rooms.Add(block);
@@ -96,9 +96,8 @@ public partial class RoomGenerator : Node2D
 
         var triangulation = new DelaunayTriangulation(centroids);
         var triangles = triangulation.Triangulate();
-
-        var debugDraw = new DebugDrawer();
-        AddChild(debugDraw);
+        var ddTriangles = new DebugDrawer();
+        AddChild(ddTriangles);
 
         foreach (var triangle in triangles)
         {
@@ -106,25 +105,48 @@ public partial class RoomGenerator : Node2D
             var centroidB = triangle.B;
             var centroidC = triangle.C;
 
-            var roomA = rooms[centroidToRoomIndex[triangle.A]];
-            var roomB = rooms[centroidToRoomIndex[triangle.B]];
-            var roomC = rooms[centroidToRoomIndex[triangle.C]];
-
-            debugDraw.AddLine(centroidA, centroidB, new Color(1, 0, 0));
-            debugDraw.AddLine(centroidB, centroidC, new Color(1, 0, 0));
-            debugDraw.AddLine(centroidC, centroidA, new Color(1, 0, 0));
+            ddTriangles.AddLine(centroidA, centroidB, new Color(1, 0, 0));
+            ddTriangles.AddLine(centroidB, centroidC, new Color(1, 0, 0));
+            ddTriangles.AddLine(centroidC, centroidA, new Color(1, 0, 0));
         }
-    }
+        await Task.Delay(3 * 1000);
+        ddTriangles.QueueFree();
 
-    public Vector2 RandomPointInCircle(float radius)
-    {
-        float theta = 2 * (float)Math.PI * rng.Randf();
-        float u = rng.Randf() + rng.Randf();
-        float r = u > 1 ? 2 - u : u;
-        return new Vector2(
-            radius * r * (float)Math.Cos(theta),
-            radius * r * (float)Math.Sin(theta)
-        );
+        // link a graph of rooms,
+        var graph = new Graph<Vector2>();
+        foreach (var t in triangles)
+        {
+            float wAB = t.A.DistanceSquaredTo(t.B);
+            graph.Add(t.A, t.B, wAB);
+            graph.Add(t.B, t.A, wAB);
+
+            float wBC = t.B.DistanceSquaredTo(t.C);
+            graph.Add(t.B, t.C, wBC);
+            graph.Add(t.C, t.B, wBC);
+
+            float wCA = t.C.DistanceSquaredTo(t.A);
+            graph.Add(t.C, t.A, wCA);
+            graph.Add(t.A, t.C, wCA);
+        }
+
+        foreach (var c in centroids)
+        {
+            GD.Print($"graph.Contains({c}): ${graph.Contains(c)}");
+        }
+
+        // Compute MST
+        var mst = graph.PrimMST();
+        var ddMst = new DebugDrawer();
+        AddChild(ddMst);
+        foreach (var edge in mst)
+        {
+            ddMst.AddLine(edge.A, edge.B, new Color(1, 0, 0));
+        }
+
+        // Don't forget you can then map these centroids back to rooms
+        // var roomA = rooms[centroidToRoomIndex[triangle.A]];
+        // var roomB = rooms[centroidToRoomIndex[triangle.B]];
+        // var roomC = rooms[centroidToRoomIndex[triangle.C]];
     }
 
     public Vector2I GenerateRandomDims()
@@ -137,19 +159,15 @@ public partial class RoomGenerator : Node2D
 
     private Vector2 GenerateNormalRadomRoomSize()
     {
-        float width = Mathf.Max(1, Mathf.Round(NormalDistribution(meanWidth, stddevWidth)));
-        float height = Mathf.Max(1, Mathf.Round(NormalDistribution(meanHeight, stddevHeight)));
+        float width = Mathf.Max(
+            1,
+            Mathf.Round(MathUtils.NormalDistribution(meanWidth, stddevWidth, rng))
+        );
+        float height = Mathf.Max(
+            1,
+            Mathf.Round(MathUtils.NormalDistribution(meanHeight, stddevHeight, rng))
+        );
         return new Vector2(width, height);
-    }
-
-    // USEFUL, STANDARDIZE?
-    private float NormalDistribution(float mean, float stddev)
-    {
-        // Box-Muller transform
-        float u1 = rng.Randf();
-        float u2 = rng.Randf();
-        float z = Mathf.Sqrt(-2f * Mathf.Log(u1)) * Mathf.Cos(2f * Mathf.Pi * u2);
-        return mean + z * stddev;
     }
 
     public Task<bool> WaitUntilAllBodiesSleep<T>(List<T> bodies, float timeoutSeconds)
