@@ -53,16 +53,34 @@ public partial class RoomVisualizer : RigidBody2D
         LockRotation = true;
         FreezeMode = FreezeModeEnum.Kinematic;
         _collisionShape = new CollisionShape2D();
-        var shape = new RectangleShape2D { Size = GetSize() };
+        var screenSize = GetSize();
+        var shape = new RectangleShape2D { Size = screenSize };
         GravityScale = 0;
 
         _collisionShape.Shape = shape;
         _collisionShape.Disabled = true;
 
-        debugRectangle.Size = Size;
+        debugRectangle.Size = screenSize;
+
+        var roomLines = new DebugDrawer();
+        var lineColor = new Color(0.2f, 0.2f, 0.2f);
+        var upperLeft = -screenSize / 2;
+        for (var x = 1; x < Size.X; x++)
+        {
+            var start = new Vector2(x * Dim, 0) + upperLeft;
+            var end = new Vector2(x * Dim, screenSize.Y) + upperLeft;
+            roomLines.AddLine(start, end, lineColor);
+        }
+        for (var y = 1; y < Size.Y; y++)
+        {
+            var start = new Vector2(0, y * Dim) + upperLeft;
+            var end = new Vector2(screenSize.X, y * Dim) + upperLeft;
+            roomLines.AddLine(start, end, lineColor);
+        }
 
         AddChild(_collisionShape);
         AddChild(_debugRectangle);
+        AddChild(roomLines);
     }
 
     public void SetCollisionEnabled(bool enabled)

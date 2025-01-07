@@ -42,11 +42,11 @@ public partial class RoomGenerator : Node2D
         for (int i = 0; i < 150; i++)
         {
             // Vector2I dimension = GenerateRandomDims();
-            Vector2 dimension = GenerateNormalRadomRoomSize() * Dim;
+            Vector2 dimension = GenerateNormalRadomRoomSize();
             RoomVisualizer block = new RoomVisualizer
             {
                 Size = dimension,
-                Dim = 1,
+                Dim = 16,
                 BorderColor = new Color(1, 0, 0),
                 FillColor = new Color(0, 0, 1),
                 BorderThickness = 1,
@@ -71,23 +71,20 @@ public partial class RoomGenerator : Node2D
 
         bool success = await WaitUntilAllBodiesSleep(rooms, 5.0f);
         GD.Print("Finished Success: ", success);
-
-        await Task.Delay(1 * 1000);
-
         foreach (var r in rooms)
         {
             r.SetCollisionEnabled(false);
         }
+        await Task.Delay(1 * 1000);
 
         // adjust all rooms to grid.
         foreach (var room in rooms)
         {
-            room.Position = (room.Position / Dim).Floor() * Dim;
+            // room.Position = (room.Position / Dim).Floor() * Dim;
         }
         GD.Print("Done snapping to grid");
 
         List<RoomVisualizer> selectedRooms = new List<RoomVisualizer>();
-
         float factor = 1.25f;
         foreach (var room in rooms)
         {
@@ -100,7 +97,7 @@ public partial class RoomGenerator : Node2D
                 await Task.Delay(100);
             }
         }
-        GD.Print("selected rooms", selectedRooms.Count);
+        GD.Print("Selected rooms:", selectedRooms.Count);
 
         Dictionary<Vector2, int> centroidToRoomIndex = new Dictionary<Vector2, int>();
         for (int i = 0; i < selectedRooms.Count; i++)
@@ -114,15 +111,11 @@ public partial class RoomGenerator : Node2D
         var ddTriangles = new DebugDrawer();
         AddChild(ddTriangles);
 
-        foreach (var triangle in triangles)
+        foreach (var t in triangles)
         {
-            var centroidA = triangle.A;
-            var centroidB = triangle.B;
-            var centroidC = triangle.C;
-
-            ddTriangles.AddLine(centroidA, centroidB, new Color(1, 0, 0));
-            ddTriangles.AddLine(centroidB, centroidC, new Color(1, 0, 0));
-            ddTriangles.AddLine(centroidC, centroidA, new Color(1, 0, 0));
+            ddTriangles.AddLine(t.A, t.B, new Color(1, 0, 0));
+            ddTriangles.AddLine(t.B, t.C, new Color(1, 0, 0));
+            ddTriangles.AddLine(t.C, t.A, new Color(1, 0, 0));
         }
         await Task.Delay(1 * 1000);
         ddTriangles.QueueFree();
@@ -138,18 +131,13 @@ public partial class RoomGenerator : Node2D
 
         // Compute MST
         var mst = graph.PrimMST();
-        GD.Print("Adding mst", mst.Count);
+        GD.Print("MST done");
         var ddMst = new DebugDrawer();
         AddChild(ddMst);
         foreach (var edge in mst)
         {
             ddMst.AddLine(edge.A, edge.B, new Color(1, 0, 0));
         }
-
-        // Don't forget you can then map these centroids back to rooms
-        // var roomA = rooms[centroidToRoomIndex[triangle.A]];
-        // var roomB = rooms[centroidToRoomIndex[triangle.B]];
-        // var roomC = rooms[centroidToRoomIndex[triangle.C]];
     }
 
     public Vector2I GenerateRandomDims()
