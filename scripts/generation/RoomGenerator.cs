@@ -12,7 +12,7 @@ public partial class RoomGenerator : Node2D
     float meanHeight = 4f;
     float stddevHeight = 2f;
 
-    float Dim = 16;
+    float Dim = Constants.GridSize;
 
     // random
     Vector2I MinDims = new Vector2I(5, 5);
@@ -46,7 +46,7 @@ public partial class RoomGenerator : Node2D
             RoomVisualizer block = new RoomVisualizer
             {
                 Size = dimension,
-                Dim = 16,
+                Dim = Dim,
                 BorderColor = new Color(1, 0, 0),
                 FillColor = new Color(0, 0, 1),
                 BorderThickness = 1,

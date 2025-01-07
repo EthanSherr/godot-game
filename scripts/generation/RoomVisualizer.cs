@@ -6,8 +6,7 @@ public partial class RoomVisualizer : RigidBody2D
     [Export]
     public Vector2 Size = new Vector2(4f, 4f);
 
-    [Export]
-    public int Dim = 16;
+    public float Dim = Constants.GridSize;
 
     [Export]
     public Color BorderColor
