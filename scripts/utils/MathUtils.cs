@@ -114,4 +114,9 @@ public static class MathUtils
             radius * r * (float)Math.Sin(theta)
         );
     }
+
+    public static float Truncate(float n)
+    {
+        return n > 0 ? Mathf.Floor(n) : Mathf.Ceil(n);
+    }
 }

@@ -49,7 +49,8 @@ public partial class RoomGenerator : Node2D
                 Dim = Dim,
                 BorderColor = new Color(1, 0, 0),
                 FillColor = new Color(0, 0, 1),
-                BorderThickness = 1,
+                BorderThickness = 2,
+                Id = i,
             };
             block.Position = MathUtils.RandomPointInCircle(Radius, rng);
             AddChild(block);
@@ -78,9 +79,9 @@ public partial class RoomGenerator : Node2D
         await Task.Delay(1 * 1000);
 
         // adjust all rooms to grid.
-        foreach (var room in rooms)
+        foreach (var r in rooms)
         {
-            // room.Position = (room.Position / Dim).Floor() * Dim;
+            r.SnapToGrid();
         }
         GD.Print("Done snapping to grid");
 
