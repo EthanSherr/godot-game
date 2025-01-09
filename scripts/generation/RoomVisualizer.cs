@@ -96,28 +96,14 @@ public partial class RoomVisualizer : RigidBody2D
 
     public Rect2 GetRect()
     {
-        var size = GetSize();
-        return new Rect2(Position - size / 2, size);
+        var screenSize = GetSize();
+        return new Rect2(Position - screenSize / 2, screenSize);
     }
 
     public void SnapToGrid()
     {
         var screenSize = GetSize();
-        // if (Id == 11 || Id == 123)
-        // {
-        GD.Print($"before {Id} : Position {Position}, size {Size}, size/2 = {Size / 2}");
-        var next = ((Position - screenSize / 2) / Dim).Floor();
-        GD.Print($"(({Position} - {screenSize / 2}) / {Dim}).Floor() = {next}");
-        var mult = next * Dim;
-        GD.Print($"* Dim = {mult}");
-        var center = mult + screenSize / 2;
-        GD.Print($"{mult} + {screenSize / 2} = {center}");
-        // }
         Position = ((Position - screenSize / 2) / Dim).Floor() * Dim + screenSize / 2;
-        // if (Id == 11 || Id == 123)
-        // {
-        GD.Print($"after {Id} : Position {Position} ");
-        // }
     }
 
     public Vector2 GetSize()

@@ -85,6 +85,13 @@ public partial class RoomGenerator : Node2D
         }
         GD.Print("Done snapping to grid");
 
+        // now the rooms are done moving
+        var centroidToRoom = new Dictionary<Vector2, RoomVisualizer>();
+        foreach (var r in rooms)
+        {
+            centroidToRoom[r.Position] = r;
+        }
+
         List<RoomVisualizer> selectedRooms = new List<RoomVisualizer>();
         float factor = 1.25f;
         foreach (var room in rooms)
@@ -139,6 +146,57 @@ public partial class RoomGenerator : Node2D
         {
             ddMst.AddLine(edge.A, edge.B, new Color(1, 0, 0));
         }
+        await Task.Delay(1 * 1000);
+        // ddMst.QueueFree();
+
+        var ddHalways = new DebugDrawer();
+        ddHalways.Thickness = 5f;
+        var hallwayColor = new Color(0, 0, 0);
+        AddChild(ddHalways);
+        foreach (var edge in mst)
+        {
+            var roomA = centroidToRoom[edge.A];
+            var roomB = centroidToRoom[edge.B];
+            if (roomA == null || roomB == null)
+            {
+                GD.Print("we have a problem here!");
+            }
+            var roomARect = roomA.GetRect();
+            var roomBRect = roomB.GetRect();
+
+            var midpoint = (edge.A - edge.B) / 2 + edge.B;
+            // horizontal hallway
+            if (
+                midpoint.Y > roomARect.Position.Y
+                && midpoint.Y < roomARect.Position.Y + roomARect.Size.Y
+            )
+            {
+                var hallwayStart = new Vector2(roomA.Position.X, midpoint.Y);
+                var hallwayEnd = new Vector2(roomB.Position.X, midpoint.Y);
+                ddHalways.AddLine(hallwayStart, hallwayEnd, hallwayColor);
+            }
+            // vertical hallway
+            else if (
+                midpoint.X > roomARect.Position.X
+                && midpoint.X < roomARect.Position.X + roomARect.Size.X
+            )
+            {
+                var hallwayStart = new Vector2(midpoint.X, roomA.Position.Y);
+                var hallwayEnd = new Vector2(midpoint.X, roomB.Position.Y);
+                ddHalways.AddLine(hallwayStart, hallwayEnd, hallwayColor);
+            }
+            // both!
+            else
+            {
+                var sourceStart = roomA.Position;
+                var sourceEnd = new Vector2(roomA.Position.X, roomB.Position.Y);
+                var targetEnd = roomB.Position;
+
+                ddHalways.AddLine(sourceStart, sourceEnd, hallwayColor);
+                ddHalways.AddLine(sourceEnd, targetEnd, hallwayColor);
+            }
+        }
+        GD.Print("did we have a problem here?");
     }
 
     public Vector2I GenerateRandomDims()
