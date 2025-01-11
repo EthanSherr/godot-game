@@ -58,6 +58,7 @@ public partial class RoomVisualizer : RigidBody2D
         var shape = new RectangleShape2D { Size = screenSize };
         GravityScale = 0;
 
+        _collisionShape.Position = screenSize / 2;
         _collisionShape.Shape = shape;
         _collisionShape.Disabled = true;
 
@@ -65,28 +66,29 @@ public partial class RoomVisualizer : RigidBody2D
 
         var roomLines = new DebugDrawer();
         var lineColor = new Color(0.2f, 0.2f, 0.2f);
-        var upperLeft = -screenSize / 2;
+        // var upperLeft = -screenSize / 2;
         for (var x = 1; x < Size.X; x++)
         {
-            var start = new Vector2(x * Dim, 0) + upperLeft;
-            var end = new Vector2(x * Dim, screenSize.Y) + upperLeft;
+            var start = new Vector2(x * Dim, 0); // + upperLeft;
+            var end = new Vector2(x * Dim, screenSize.Y); // + upperLeft;
             roomLines.AddLine(start, end, lineColor);
         }
         for (var y = 1; y < Size.Y; y++)
         {
-            var start = new Vector2(0, y * Dim) + upperLeft;
-            var end = new Vector2(screenSize.X, y * Dim) + upperLeft;
+            var start = new Vector2(0, y * Dim); // + upperLeft;
+            var end = new Vector2(screenSize.X, y * Dim); // + upperLeft;
             roomLines.AddLine(start, end, lineColor);
         }
 
         Label label = new Label();
         label.Text = Id.ToString();
-        label.Position = new Vector2(1, 1) - screenSize / 2;
+        label.Position = new Vector2(1, 1); // - screenSize / 2;
 
         AddChild(_collisionShape);
-        AddChild(_debugRectangle);
+        AddChild(debugRectangle);
         AddChild(roomLines);
         AddChild(label);
+        // AddChild(new DebugCircle { Position = new Vector2(0, 0), Radius = 16f });
     }
 
     public void SetCollisionEnabled(bool enabled)
@@ -96,18 +98,21 @@ public partial class RoomVisualizer : RigidBody2D
 
     public Rect2 GetRect()
     {
-        var screenSize = GetSize();
-        return new Rect2(Position - screenSize / 2, screenSize);
+        return new Rect2(Position, GetSize());
     }
 
     public void SnapToGrid()
     {
-        var screenSize = GetSize();
-        Position = ((Position - screenSize / 2) / Dim).Floor() * Dim + screenSize / 2;
+        Position = Position.SnapToGrid();
     }
 
     public Vector2 GetSize()
     {
         return Size * Dim;
+    }
+
+    public Vector2 GetCentroid()
+    {
+        return Position + GetSize() / 2;
     }
 }

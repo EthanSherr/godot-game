@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
@@ -25,8 +26,6 @@ public partial class RoomGenerator : Node2D
 
     private RandomNumberGenerator rng;
 
-    private List<RoomVisualizer> rooms = new List<RoomVisualizer>();
-
     private bool slowly = true;
 
     public override void _Ready()
@@ -34,63 +33,112 @@ public partial class RoomGenerator : Node2D
         rng = new RandomNumberGenerator();
         rng.Seed = Seed;
 
-        GenerateRooms();
+        GenerateDungeon();
     }
 
-    public async void GenerateRooms()
+    public async void GenerateDungeon()
     {
+        AddChild(makeGrid());
+
+        var rooms = await GenerateRooms();
+        await Separate(rooms);
+        await Snap(rooms);
+        var selectedRooms = await SelectRooms(rooms);
+        var edges = await RelateSelectedRooms(selectedRooms);
+        var hallways = await AddHallways(edges);
+        await IntersectRooms(hallways);
+    }
+
+    public Node2D makeGrid()
+    {
+        var dd = new DebugDrawer();
+        var gridLines = 100;
+        var lineColor = new Color(0, 0, 0);
+        dd.Position = -0.5f * Dim * new Vector2(gridLines, gridLines);
+        for (var x = 0; x < gridLines; x++)
+        {
+            var start = new Vector2(x * Dim, 0);
+            var end = new Vector2(x * Dim, gridLines * Dim);
+            dd.AddLine(start, end, lineColor);
+        }
+
+        for (var y = 0; y < gridLines; y++)
+        {
+            var start = new Vector2(0, y * Dim);
+            var end = new Vector2(gridLines * Dim, y * Dim);
+            dd.AddLine(start, end, lineColor);
+        }
+        return dd;
+    }
+
+    public async Task<List<RoomVisualizer>> GenerateRooms()
+    {
+        List<RoomVisualizer> rooms = new List<RoomVisualizer>();
         for (int i = 0; i < 150; i++)
         {
-            // Vector2I dimension = GenerateRandomDims();
             Vector2 dimension = GenerateNormalRadomRoomSize();
-            RoomVisualizer block = new RoomVisualizer
+            RoomVisualizer room = new RoomVisualizer
             {
                 Size = dimension,
                 Dim = Dim,
-                BorderColor = new Color(1, 0, 0),
-                FillColor = new Color(0, 0, 1),
+                BorderColor = new Color(0, 0, 1),
+                FillColor = new Color(0, 0, 0.8f, 0.5f),
                 BorderThickness = 2,
                 Id = i,
             };
-            block.Position = MathUtils.RandomPointInCircle(Radius, rng);
-            AddChild(block);
+            room.Position = MathUtils.RandomPointInCircle(Radius, rng);
+            AddChild(room);
 
-            rooms.Add(block);
+            rooms.Add(room);
             if (slowly && i % 2 == 0)
             {
                 await Task.Delay(1);
             }
         }
+        return rooms;
+    }
 
-        Vector2 meanSize = new Vector2();
+    public async Task Separate(List<RoomVisualizer> rooms)
+    {
         foreach (var room in rooms)
         {
             room.SetCollisionEnabled(true);
-            meanSize += room.GetSize();
         }
-        meanSize = meanSize / rooms.Count();
 
         bool success = await WaitUntilAllBodiesSleep(rooms, 5.0f);
         GD.Print("Finished Success: ", success);
+
         foreach (var r in rooms)
         {
             r.SetCollisionEnabled(false);
         }
         await Task.Delay(1 * 1000);
+    }
 
+    public async Task Snap(List<RoomVisualizer> rooms)
+    {
         // adjust all rooms to grid.
         foreach (var r in rooms)
         {
             r.SnapToGrid();
         }
         GD.Print("Done snapping to grid");
+    }
 
-        // now the rooms are done moving
-        var centroidToRoom = new Dictionary<Vector2, RoomVisualizer>();
-        foreach (var r in rooms)
+    public async Task<List<RoomVisualizer>> SelectRooms(List<RoomVisualizer> rooms)
+    {
+        Vector2 meanSize = new Vector2();
+        foreach (var room in rooms)
         {
-            centroidToRoom[r.Position] = r;
+            meanSize += room.GetSize();
         }
+        meanSize = meanSize / rooms.Count();
+        // now the rooms are done moving
+        // var centroidToRoom = new Dictionary<Vector2, RoomVisualizer>();
+        // foreach (var r in rooms)
+        // {
+        //     centroidToRoom[r.Position] = r;
+        // }
 
         List<RoomVisualizer> selectedRooms = new List<RoomVisualizer>();
         float factor = 1.25f;
@@ -105,12 +153,17 @@ public partial class RoomGenerator : Node2D
                 await Task.Delay(100);
             }
         }
-        GD.Print("Selected rooms:", selectedRooms.Count);
+        return selectedRooms;
+    }
 
+    public async Task<List<(RoomVisualizer roomA, RoomVisualizer roomB)>> RelateSelectedRooms(
+        List<RoomVisualizer> selectedRooms
+    )
+    {
         Dictionary<Vector2, int> centroidToRoomIndex = new Dictionary<Vector2, int>();
         for (int i = 0; i < selectedRooms.Count; i++)
         {
-            centroidToRoomIndex[selectedRooms[i].Position] = i;
+            centroidToRoomIndex[selectedRooms[i].GetCentroid()] = i;
         }
         List<Vector2> centroids = centroidToRoomIndex.Keys.ToList();
 
@@ -139,7 +192,18 @@ public partial class RoomGenerator : Node2D
 
         // Compute MST
         var mst = graph.PrimMST();
-        GD.Print("MST done");
+        GD.Print($"MST done");
+
+        var list = new List<(RoomVisualizer roomA, RoomVisualizer roomB)>();
+        foreach (var edge in mst)
+        {
+            list.Add(
+                (
+                    selectedRooms[centroidToRoomIndex[edge.A]],
+                    selectedRooms[centroidToRoomIndex[edge.B]]
+                )
+            );
+        }
         var ddMst = new DebugDrawer();
         AddChild(ddMst);
         foreach (var edge in mst)
@@ -149,62 +213,113 @@ public partial class RoomGenerator : Node2D
         await Task.Delay(1 * 1000);
         // ddMst.QueueFree();
 
-        var ddHalways = new DebugDrawer();
-        ddHalways.Thickness = 5f;
-        var hallwayColor = new Color(0, 0, 0);
-        AddChild(ddHalways);
-        foreach (var edge in mst)
+        return list;
+    }
+
+    public async Task<List<(Vector2 A, Vector2 B)>> AddHallways(
+        List<(RoomVisualizer roomA, RoomVisualizer roomB)> roomEdges
+    )
+    {
+        var hallways = new List<(Vector2 A, Vector2 B)>();
+        foreach (var (roomA, roomB) in roomEdges)
         {
-            var roomA = centroidToRoom[edge.A];
-            var roomB = centroidToRoom[edge.B];
-            if (roomA == null || roomB == null)
-            {
-                GD.Print("we have a problem here!");
-            }
             var roomARect = roomA.GetRect();
             var roomBRect = roomB.GetRect();
 
-            var midpoint = (edge.A - edge.B) / 2 + edge.B;
+            var roomACenter = roomARect.GetCenter();
+            var roomBCenter = roomBRect.GetCenter();
+
+            var midpoint = (roomACenter - roomBCenter) / 2 + roomBCenter;
             // horizontal hallway
             if (
-                midpoint.Y > roomARect.Position.Y
-                && midpoint.Y < roomARect.Position.Y + roomARect.Size.Y
+                MathUtils.IsBetween(
+                    midpoint.Y,
+                    roomARect.Position.Y,
+                    roomARect.Position.Y + roomARect.Size.Y
+                )
+                && MathUtils.IsBetween(
+                    midpoint.Y,
+                    roomBRect.Position.Y,
+                    roomBRect.Position.Y + roomBRect.Size.Y
+                )
             )
             {
-                var hallwayStart = new Vector2(roomA.Position.X, midpoint.Y);
-                var hallwayEnd = new Vector2(roomB.Position.X, midpoint.Y);
-                ddHalways.AddLine(hallwayStart, hallwayEnd, hallwayColor);
+                var hallwayStart = new Vector2(roomACenter.X, midpoint.Y).SnapToGrid();
+                var hallwayEnd = new Vector2(roomBCenter.X, midpoint.Y).SnapToGrid();
+                hallways.Add((hallwayStart, hallwayEnd));
             }
             // vertical hallway
             else if (
-                midpoint.X > roomARect.Position.X
-                && midpoint.X < roomARect.Position.X + roomARect.Size.X
+                MathUtils.IsBetween(
+                    midpoint.X,
+                    roomARect.Position.X,
+                    roomARect.Position.X + roomARect.Size.X
+                )
+                && MathUtils.IsBetween(
+                    midpoint.X,
+                    roomBRect.Position.X,
+                    roomBRect.Position.X + roomBRect.Size.X
+                )
             )
             {
-                var hallwayStart = new Vector2(midpoint.X, roomA.Position.Y);
-                var hallwayEnd = new Vector2(midpoint.X, roomB.Position.Y);
-                ddHalways.AddLine(hallwayStart, hallwayEnd, hallwayColor);
+                var hallwayStart = new Vector2(midpoint.X, roomACenter.Y).SnapToGrid();
+                var hallwayEnd = new Vector2(midpoint.X, roomBCenter.Y).SnapToGrid();
+                hallways.Add((hallwayStart, hallwayEnd));
             }
             // both!
             else
             {
-                var sourceStart = roomA.Position;
-                var sourceEnd = new Vector2(roomA.Position.X, roomB.Position.Y);
-                var targetEnd = roomB.Position;
+                var sourceStart = roomACenter.SnapToGrid();
+                var sourceEnd = new Vector2(roomACenter.X, roomBCenter.Y).SnapToGrid();
+                var targetEnd = roomBCenter.SnapToGrid();
 
-                ddHalways.AddLine(sourceStart, sourceEnd, hallwayColor);
-                ddHalways.AddLine(sourceEnd, targetEnd, hallwayColor);
+                hallways.Add((sourceStart, sourceEnd));
+                hallways.Add((sourceEnd, targetEnd));
             }
         }
-        GD.Print("did we have a problem here?");
+
+        var ddHalways = new DebugDrawer();
+        ddHalways.Thickness = 5f;
+        var hallwayColor = new Color(0, 0, 0);
+        AddChild(ddHalways);
+        // debuggin
+        foreach (var (prev, next) in hallways)
+        {
+            ddHalways.AddLine(prev, next, hallwayColor);
+        }
+        return hallways;
     }
 
-    public Vector2I GenerateRandomDims()
+    public async Task IntersectRooms(List<(Vector2 A, Vector2 B)> hallways)
     {
-        return new Vector2I(
-            rng.RandiRange(MinDims.X, MaxDims.X),
-            rng.RandiRange(MinDims.Y, MaxDims.Y)
-        );
+        var spaceState = GetWorld2D().DirectSpaceState;
+        uint collisionMask = 0;
+        foreach (var (A, B) in hallways)
+        {
+            var BA = B - A;
+            BA.X = Mathf.Max(BA.X, Dim);
+            BA.Y = Mathf.Max(BA.Y, Dim);
+            var position = BA / 2 + A;
+
+            var intersectingObjects = new List<Node2D>();
+            var rectangle = new RectangleShape2D();
+            rectangle.Size = BA;
+
+            var queryParameters = new PhysicsShapeQueryParameters2D
+            {
+                Shape = rectangle,
+                Transform = new Transform2D(0, position), // Position of the rectangle
+                CollisionMask = collisionMask, // Filter objects by collision layers
+            };
+            var results = spaceState.IntersectShape(queryParameters, 150);
+
+            foreach (var result in results)
+            {
+                GD.Print("Results found!", result);
+            }
+        }
+
+        GD.Print("done intersect rooms!");
     }
 
     private Vector2 GenerateNormalRadomRoomSize()

@@ -6,4 +6,9 @@ public static class VectorExtensions
     {
         return new Vector2(MathUtils.Truncate(v.X), MathUtils.Truncate(v.Y));
     }
+
+    public static Vector2 SnapToGrid(this Vector2 v)
+    {
+        return (v / Constants.GridSize).Floor() * Constants.GridSize;
+    }
 }

@@ -119,4 +119,9 @@ public static class MathUtils
     {
         return n > 0 ? Mathf.Floor(n) : Mathf.Ceil(n);
     }
+
+    public static bool IsBetween(float value, float min, float max)
+    {
+        return min < value && value < max;
+    }
 }
