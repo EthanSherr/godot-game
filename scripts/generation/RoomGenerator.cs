@@ -41,9 +41,9 @@ public partial class RoomGenerator : Node2D
         var rooms = await GenerateRooms();
         await Separate(rooms);
         await Snap(rooms);
-        GD.Print("separate again");
-        await Separate(rooms);
-        await Snap(rooms);
+        // GD.Print("separate again");
+        // await Separate(rooms);
+        // await Snap(rooms);
 
         var selectedRooms = await SelectRooms(rooms);
         var edges = await RelateSelectedRooms(selectedRooms);
@@ -287,6 +287,7 @@ public partial class RoomGenerator : Node2D
 
     public async Task IntersectRooms(List<(Vector2 A, Vector2 B)> hallways)
     {
+        var debugNodes = new List<Node2D>();
         var spaceState = GetWorld2D().DirectSpaceState;
         foreach (var (A, _B) in hallways)
         {
@@ -320,10 +321,11 @@ public partial class RoomGenerator : Node2D
 
             var interceptVis = new DebugRectangle();
             interceptVis.FillColor = new Color(0, 0, 0, 0);
-            interceptVis.BorderColor = new Color(1, 0, 0);
+            interceptVis.BorderColor = new Color(0.2f, 0, 0);
             interceptVis.Size = size;
             interceptVis.Position = rectCenter - size / 2;
             AddChild(interceptVis);
+            debugNodes.Add(interceptVis);
 
             foreach (var result in results)
             {
@@ -334,6 +336,12 @@ public partial class RoomGenerator : Node2D
                 room.FillColor = new Color(0, 1, 0);
             }
             await Task.Delay(2 * 1000);
+        }
+
+        await Task.Delay(2 * 1000);
+        foreach (var dbgNodes in debugNodes)
+        {
+            dbgNodes.QueueFree();
         }
 
         GD.Print("done intersect rooms!");
