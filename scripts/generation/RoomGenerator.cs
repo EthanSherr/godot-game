@@ -5,6 +5,12 @@ using Godot;
 
 public partial class RoomGenerator : Node2D
 {
+    // ???
+    [Export]
+    private string tileMapperScenePath = "res://scripts/generation/TileMapper.tscn";
+
+    private TileMapper tileMapper;
+
     // normal random
     float meanWidth = 5f;
     float stddevWidth = 2f;
@@ -31,6 +37,15 @@ public partial class RoomGenerator : Node2D
         rng = new RandomNumberGenerator();
         rng.Seed = Seed;
 
+        PackedScene tileLayerPackedScene = GD.Load<PackedScene>(tileMapperScenePath);
+        if (tileLayerPackedScene == null)
+        {
+            GD.Print($"Error loading packed scene {tileMapperScenePath}");
+            return;
+        }
+        tileMapper = (TileMapper)tileLayerPackedScene.Instantiate();
+        AddChild(tileMapper);
+
         GenerateDungeon();
     }
 
@@ -48,7 +63,9 @@ public partial class RoomGenerator : Node2D
         var selectedRooms = await SelectRooms(rooms);
         var edges = await RelateSelectedRooms(selectedRooms);
         var hallways = await AddHallways(edges);
-        await IntersectRooms(hallways);
+        var rooms2 = await IntersectRooms(hallways);
+
+        await FillRooms(rooms2);
     }
 
     public Node2D makeGrid()
@@ -78,7 +95,7 @@ public partial class RoomGenerator : Node2D
         List<RoomVisualizer> rooms = new List<RoomVisualizer>();
         for (int i = 0; i < 150; i++)
         {
-            Vector2 dimension = GenerateNormalRadomRoomSize();
+            Vector2I dimension = GenerateNormalRadomRoomSize();
             RoomVisualizer room = new RoomVisualizer
             {
                 Size = dimension,
@@ -285,8 +302,9 @@ public partial class RoomGenerator : Node2D
         return hallways;
     }
 
-    public async Task IntersectRooms(List<(Vector2 A, Vector2 B)> hallways)
+    public async Task<List<RoomVisualizer>> IntersectRooms(List<(Vector2 A, Vector2 B)> hallways)
     {
+        var intersectedRooms = new List<RoomVisualizer>();
         var debugNodes = new List<Node2D>();
         var spaceState = GetWorld2D().DirectSpaceState;
         foreach (var (A, _B) in hallways)
@@ -320,8 +338,8 @@ public partial class RoomGenerator : Node2D
             var results = spaceState.IntersectShape(queryParameters, 150);
 
             var interceptVis = new DebugRectangle();
-            interceptVis.FillColor = new Color(0, 0, 0, 0);
-            interceptVis.BorderColor = new Color(0.2f, 0, 0);
+            interceptVis.FillColor = new Color(0.2f, 0, 0, 0.2f);
+            interceptVis.BorderColor = new Color(1f, 0, 0);
             interceptVis.Size = size;
             interceptVis.Position = rectCenter - size / 2;
             AddChild(interceptVis);
@@ -333,31 +351,45 @@ public partial class RoomGenerator : Node2D
                 if (room == null)
                     continue;
 
-                room.FillColor = new Color(0, 1, 0);
+                room.FillColor = new Color(0, 1, 0, 0.2f);
+                intersectedRooms.Add(room);
             }
-            await Task.Delay(2 * 1000);
+            await Task.Delay((int)(0.5f * 1000));
         }
 
         await Task.Delay(2 * 1000);
-        foreach (var dbgNodes in debugNodes)
-        {
-            dbgNodes.QueueFree();
-        }
+        // foreach (var dbgNodes in debugNodes)
+        // {
+        //     dbgNodes.QueueFree();
+        // }
 
-        GD.Print("done intersect rooms!");
+        return intersectedRooms;
     }
 
-    private Vector2 GenerateNormalRadomRoomSize()
+    public async Task FillRooms(List<RoomVisualizer> rooms)
     {
-        float width = Mathf.Max(
+        tileMapper.ZIndex = 1000;
+        foreach (var r in rooms)
+        {
+            GD.Print("Room r.id = ", r.Id, r.GetPerimeter());
+            foreach (Vector2I position in r.GetPerimeter())
+            {
+                tileMapper.FillCell(position);
+            }
+        }
+    }
+
+    private Vector2I GenerateNormalRadomRoomSize()
+    {
+        int width = Mathf.Max(
             1,
-            Mathf.Round(MathUtils.NormalDistribution(meanWidth, stddevWidth, rng))
+            (int)Mathf.Floor(MathUtils.NormalDistribution(meanWidth, stddevWidth, rng))
         );
-        float height = Mathf.Max(
+        int height = Mathf.Max(
             1,
-            Mathf.Round(MathUtils.NormalDistribution(meanHeight, stddevHeight, rng))
+            (int)Mathf.Floor(MathUtils.NormalDistribution(meanHeight, stddevHeight, rng))
         );
-        return new Vector2(width, height);
+        return new Vector2I(width, height);
     }
 
     public Task<bool> WaitUntilAllBodiesSleep<T>(List<T> bodies, float timeoutSeconds)

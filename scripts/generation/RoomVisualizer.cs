@@ -1,10 +1,11 @@
+using System.Collections.Generic;
 using Godot;
 
 public partial class RoomVisualizer : RigidBody2D
 {
     // Parameters for the rectangle
     [Export]
-    public Vector2 Size = new Vector2(4f, 4f);
+    public Vector2I Size = new Vector2I(4, 4);
 
     public float Dim = Constants.GridSize;
 
@@ -116,17 +117,48 @@ public partial class RoomVisualizer : RigidBody2D
         //     $"SnapToGrid BEFORE: {Id} = {GetRect()} , min: {Position} max: {Position + GetSize()}"
         // );
         // Position = Position.SnapToGrid();
-        Position = (Position / Dim).Round() * Dim;
+        Position = (Position / Dim).Floor() * Dim;
         // GD.Print($"SnapToGrid AFTER: {Id} = min: {Position} max: {Position + GetSize()}");
     }
 
     public Vector2 GetSize()
     {
-        return Size * Dim;
+        return new Vector2(Size.X, Size.Y) * Dim;
     }
 
     public Vector2 GetCentroid()
     {
         return Position + GetSize() / 2;
+    }
+
+    public Vector2I GetGridPosition()
+    {
+        var P = Position / Dim;
+        return new Vector2I((int)P.X, (int)P.Y);
+    }
+
+    public List<Vector2I> GetPerimeter()
+    {
+        List<Vector2I> result = new List<Vector2I>();
+
+        var P = GetGridPosition();
+
+        for (var X = 0; X < Size.X; X++)
+        {
+            var top = new Vector2I(X, 0) + P;
+            var bottom = new Vector2I(X, Size.Y - 1) + P;
+            result.Add(top);
+            result.Add(bottom);
+        }
+
+        for (var Y = 0; Y < Size.Y; Y++)
+        {
+            var left = new Vector2I(0, Y) + P;
+            var right = new Vector2I(Size.X - 1, Y) + P;
+            result.Add(left);
+            result.Add(right);
+        }
+
+        return result;
     }
 }
