@@ -1,0 +1,17 @@
+[gd_scene load_steps=2 format=3 uid="uid://c5iyl3tlbm324"]
+
+[ext_resource type="Script" path="res://levels/tests/RayCastTest.cs" id="1_mje86"]
+
+[node name="RayCastTest" type="Node2D"]
+script = ExtResource("1_mje86")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="RayCast2D" type="RayCast2D" parent="Camera2D"]
+target_position = Vector2(278, 0)
+collision_mask = 8
+
+[node name="RayCast2D2" type="RayCast2D" parent="Camera2D"]
+position = Vector2(0, -31)
+target_position = Vector2(278, 0)
+collision_mask = 8

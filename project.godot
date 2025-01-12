@@ -45,6 +45,13 @@ ui_up={
 ]
 }
 
+[layer_names]
+
+2d_physics/layer_1="Environment"
+2d_physics/layer_2="Ladder"
+2d_physics/layer_3="Player"
+2d_physics/layer_4="Room"
+
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0

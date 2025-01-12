@@ -69,9 +69,4 @@ public partial class DebugRectangle : Node2D
         DrawLine(Zero + new Vector2(0, rect.Size.Y), Zero + rect.Size, color, thickness); // Bottom
         DrawLine(Zero + new Vector2(rect.Size.X, 0), Zero + rect.Size, color, thickness); // Right
     }
-
-    // public override void _Process(double delta)
-    // {
-    //     QueueRedraw();
-    // }
 }

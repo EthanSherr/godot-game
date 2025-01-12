@@ -60,7 +60,11 @@ public partial class RoomVisualizer : RigidBody2D
 
         _collisionShape.Position = screenSize / 2;
         _collisionShape.Shape = shape;
-        _collisionShape.Disabled = true;
+        _collisionShape.Disabled = false;
+
+        CollisionLayer = CollisionLayers.ROOM;
+        // Initially I have no collision mask - so initially Rooms can overlap.
+        SetCollidesWithOtherRooms(false);
 
         debugRectangle.Size = screenSize;
 
@@ -88,12 +92,17 @@ public partial class RoomVisualizer : RigidBody2D
         AddChild(debugRectangle);
         AddChild(roomLines);
         AddChild(label);
+
         // AddChild(new DebugCircle { Position = new Vector2(0, 0), Radius = 16f });
     }
 
-    public void SetCollisionEnabled(bool enabled)
+    public void SetCollidesWithOtherRooms(bool enabled)
     {
-        _collisionShape.Disabled = !enabled;
+        CollisionMask = enabled ? CollisionLayers.ROOM : CollisionLayers.NONE;
+
+        // re-awaken!
+        _collisionShape.Disabled = true;
+        _collisionShape.Disabled = false;
     }
 
     public Rect2 GetRect()
@@ -103,7 +112,12 @@ public partial class RoomVisualizer : RigidBody2D
 
     public void SnapToGrid()
     {
-        Position = Position.SnapToGrid();
+        // GD.Print(
+        //     $"SnapToGrid BEFORE: {Id} = {GetRect()} , min: {Position} max: {Position + GetSize()}"
+        // );
+        // Position = Position.SnapToGrid();
+        Position = (Position / Dim).Round() * Dim;
+        // GD.Print($"SnapToGrid AFTER: {Id} = min: {Position} max: {Position + GetSize()}");
     }
 
     public Vector2 GetSize()

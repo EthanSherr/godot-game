@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
@@ -43,6 +41,10 @@ public partial class RoomGenerator : Node2D
         var rooms = await GenerateRooms();
         await Separate(rooms);
         await Snap(rooms);
+        GD.Print("separate again");
+        await Separate(rooms);
+        await Snap(rooms);
+
         var selectedRooms = await SelectRooms(rooms);
         var edges = await RelateSelectedRooms(selectedRooms);
         var hallways = await AddHallways(edges);
@@ -51,7 +53,7 @@ public partial class RoomGenerator : Node2D
 
     public Node2D makeGrid()
     {
-        var dd = new DebugDrawer();
+        var dd = new DebugDrawer { Thickness = 1f };
         var gridLines = 100;
         var lineColor = new Color(0, 0, 0);
         dd.Position = -0.5f * Dim * new Vector2(gridLines, gridLines);
@@ -102,7 +104,7 @@ public partial class RoomGenerator : Node2D
     {
         foreach (var room in rooms)
         {
-            room.SetCollisionEnabled(true);
+            room.SetCollidesWithOtherRooms(true);
         }
 
         bool success = await WaitUntilAllBodiesSleep(rooms, 5.0f);
@@ -110,7 +112,7 @@ public partial class RoomGenerator : Node2D
 
         foreach (var r in rooms)
         {
-            r.SetCollisionEnabled(false);
+            r.SetCollidesWithOtherRooms(false);
         }
         await Task.Delay(1 * 1000);
     }
@@ -133,12 +135,6 @@ public partial class RoomGenerator : Node2D
             meanSize += room.GetSize();
         }
         meanSize = meanSize / rooms.Count();
-        // now the rooms are done moving
-        // var centroidToRoom = new Dictionary<Vector2, RoomVisualizer>();
-        // foreach (var r in rooms)
-        // {
-        //     centroidToRoom[r.Position] = r;
-        // }
 
         List<RoomVisualizer> selectedRooms = new List<RoomVisualizer>();
         float factor = 1.25f;
@@ -211,8 +207,7 @@ public partial class RoomGenerator : Node2D
             ddMst.AddLine(edge.A, edge.B, new Color(1, 0, 0));
         }
         await Task.Delay(1 * 1000);
-        // ddMst.QueueFree();
-
+        ddMst.QueueFree();
         return list;
     }
 
@@ -293,30 +288,52 @@ public partial class RoomGenerator : Node2D
     public async Task IntersectRooms(List<(Vector2 A, Vector2 B)> hallways)
     {
         var spaceState = GetWorld2D().DirectSpaceState;
-        uint collisionMask = 0;
-        foreach (var (A, B) in hallways)
+        foreach (var (A, _B) in hallways)
         {
-            var BA = B - A;
-            BA.X = Mathf.Max(BA.X, Dim);
-            BA.Y = Mathf.Max(BA.Y, Dim);
-            var position = BA / 2 + A;
+            var isVertical = A.X == _B.X;
+            var B = _B;
 
-            var intersectingObjects = new List<Node2D>();
+            // push B out to thicken to hallway size, so it's not a hallway with a 0 dimension.
+            if (isVertical)
+            {
+                B += new Vector2(Dim, 0);
+            }
+            else
+            {
+                B += new Vector2(0, Dim);
+            }
+
+            var BA = B - A;
+            var rectCenter = BA / 2 + A;
+            var size = BA.Abs();
+
             var rectangle = new RectangleShape2D();
-            rectangle.Size = BA;
+            rectangle.Size = size;
 
             var queryParameters = new PhysicsShapeQueryParameters2D
             {
                 Shape = rectangle,
-                Transform = new Transform2D(0, position), // Position of the rectangle
-                CollisionMask = collisionMask, // Filter objects by collision layers
+                Transform = new Transform2D(0, rectCenter),
+                CollisionMask = CollisionLayers.ROOM,
             };
             var results = spaceState.IntersectShape(queryParameters, 150);
 
+            var interceptVis = new DebugRectangle();
+            interceptVis.FillColor = new Color(0, 0, 0, 0);
+            interceptVis.BorderColor = new Color(1, 0, 0);
+            interceptVis.Size = size;
+            interceptVis.Position = rectCenter - size / 2;
+            AddChild(interceptVis);
+
             foreach (var result in results)
             {
-                GD.Print("Results found!", result);
+                var room = result["collider"].As<RoomVisualizer>();
+                if (room == null)
+                    continue;
+
+                room.FillColor = new Color(0, 1, 0);
             }
+            await Task.Delay(2 * 1000);
         }
 
         GD.Print("done intersect rooms!");
