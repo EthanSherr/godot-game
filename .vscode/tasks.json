@@ -2,6 +2,12 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "echo-godot4-path",
+      "type": "shell",
+      "command": "echo",
+      "args": ["Resolved program path: ${env:GODOT4}"]
+    },
+    {
       "label": "build",
       "command": "dotnet",
       "type": "shell",

@@ -274,4 +274,11 @@ public partial class Player : CharacterBody2D
             velocity.Y = 0;
         }
     }
+
+    private static string ScenePath = "res://scripts/game/Player.tscn";
+
+    public static Player Create()
+    {
+        return NodeUtils.CreateFromScene<Player>(ScenePath);
+    }
 }

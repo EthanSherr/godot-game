@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Godot;
 
@@ -20,5 +21,19 @@ public static class NodeUtils
         }
 
         return nodesOfType;
+    }
+
+    public static T CreateFromScene<T>(string scenePath)
+        where T : class
+    {
+        PackedScene spawnScene =
+            GD.Load<PackedScene>(scenePath)
+            ?? throw new InvalidOperationException($"Failed to load scene at path: {scenePath}");
+        T spawnInstance =
+            spawnScene.Instantiate<T>()
+            ?? throw new InvalidOperationException(
+                $"Failed to load scene: {scenePath} is not a PlayerSpawn"
+            );
+        return spawnInstance;
     }
 }

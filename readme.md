@@ -35,3 +35,7 @@ I implemented prims in Graph.cs
 # Splenky room generation:
 
 https://tinysubversions.com/spelunkyGen/
+
+# BUILD CONFIGS
+
+https://www.youtube.com/watch?v=PhrwjHdsALM&ab_channel=JaceVarlet

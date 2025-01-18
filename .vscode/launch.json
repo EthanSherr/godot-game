@@ -2,11 +2,18 @@
   "version": "2.0.0",
   "configurations": [
     {
+      "name": "Debug GODOT4 Variable",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/debug.js",
+      "console": "integratedTerminal"
+    },
+    {
       "name": "Launch",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "{env:GODOT4}",
+      "program": "/Applications/Godot_mono.app/Contents/MacOS/Godot",
       "cwd": "${workspaceFolder}",
       "console": "internalConsole",
       "stopAtEntry": false,
@@ -17,7 +24,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "{env:GODOT4}",
+      "program": "/Applications/Godot_mono.app/Contents/MacOS/Godot",
       "cwd": "${workspaceFolder}",
       "console": "internalConsole",
       "stopAtEntry": false,
@@ -32,7 +39,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "{env:GODOT4}",
+      "program": "/Applications/Godot_mono.app/Contents/MacOS/Godot",
       "cwd": "${workspaceFolder}",
       "console": "internalConsole",
       "stopAtEntry": false,
