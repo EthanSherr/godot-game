@@ -1,10 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://dojt7n68btlxv"]
+[gd_scene load_steps=3 format=3 uid="uid://dojt7n68btlxv"]
 
 [ext_resource type="Script" path="res://levels/Generation.cs" id="1_hkfgc"]
+[ext_resource type="PackedScene" uid="uid://cvn25pjocp4qi" path="res://scripts/game/GodPawn.tscn" id="2_rgic8"]
 
 [node name="Node2D" type="Node2D"]
 script = ExtResource("1_hkfgc")
 
-[node name="Camera2D" type="Camera2D" parent="."]
-scale = Vector2(0.33525, 1.10952)
-zoom = Vector2(1.5, 1.5)
+[node name="GodPawn" parent="." instance=ExtResource("2_rgic8")]

@@ -11,4 +11,9 @@ public static class VectorExtensions
     {
         return (v / Constants.GridSize).Floor() * Constants.GridSize;
     }
+
+    public static Vector2I ToGrid(this Vector2 v)
+    {
+        return (Vector2I)(v / Constants.GridSize).Floor();
+    }
 }

@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://dpswh6wavyp6q"]
+
+[ext_resource type="PackedScene" uid="uid://d16u8my4i6tt5" path="res://scripts/generation/TileMapper.tscn" id="1_amttk"]
+[ext_resource type="PackedScene" uid="uid://by7n13mtf7h4a" path="res://scripts/game/Player.tscn" id="2_afx2g"]
+
+[node name="TestTilemap" type="Node2D"]
+
+[node name="Node2D" type="Node2D" parent="."]
+
+[node name="TileMapper" parent="Node2D" instance=ExtResource("1_amttk")]
+
+[node name="Player" parent="Node2D" instance=ExtResource("2_afx2g")]
+position = Vector2(9, -20)

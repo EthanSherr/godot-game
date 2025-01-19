@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,10 +13,10 @@ public partial class RoomGenerator : Node2D
     private TileMapper tileMapper;
 
     // normal random
-    float meanWidth = 5f;
-    float stddevWidth = 2f;
-    float meanHeight = 4f;
-    float stddevHeight = 2f;
+    float meanWidth = 13f;
+    float stddevWidth = 4f;
+    float meanHeight = 10f;
+    float stddevHeight = 5f;
 
     float Dim = Constants.GridSize;
 
@@ -56,16 +57,14 @@ public partial class RoomGenerator : Node2D
         var rooms = await GenerateRooms();
         await Separate(rooms);
         await Snap(rooms);
-        // GD.Print("separate again");
-        // await Separate(rooms);
-        // await Snap(rooms);
 
         var selectedRooms = await SelectRooms(rooms);
         var edges = await RelateSelectedRooms(selectedRooms);
         var hallways = await AddHallways(edges);
         var rooms2 = await IntersectRooms(hallways);
 
-        await FillRooms(rooms2);
+        await FillRooms(rooms2, hallways);
+        SpawnPlayer(selectedRooms);
     }
 
     public Node2D makeGrid()
@@ -131,7 +130,7 @@ public partial class RoomGenerator : Node2D
         {
             r.SetCollidesWithOtherRooms(false);
         }
-        await Task.Delay(1 * 1000);
+        await Task.Delay(200);
     }
 
     public async Task Snap(List<RoomVisualizer> rooms)
@@ -163,12 +162,13 @@ public partial class RoomGenerator : Node2D
                 // select it!
                 selectedRooms.Add(room);
                 room.FillColor = new Color(0, 1, 0);
-                await Task.Delay(100);
+                await Task.Delay(1);
             }
         }
         return selectedRooms;
     }
 
+    // make a MST graph of selected rooms after triangulation
     public async Task<List<(RoomVisualizer roomA, RoomVisualizer roomB)>> RelateSelectedRooms(
         List<RoomVisualizer> selectedRooms
     )
@@ -191,7 +191,7 @@ public partial class RoomGenerator : Node2D
             ddTriangles.AddLine(t.B, t.C, new Color(1, 0, 0));
             ddTriangles.AddLine(t.C, t.A, new Color(1, 0, 0));
         }
-        await Task.Delay(1 * 1000);
+        await Task.Delay(200);
         ddTriangles.QueueFree();
 
         // link a graph of rooms,
@@ -223,16 +223,16 @@ public partial class RoomGenerator : Node2D
         {
             ddMst.AddLine(edge.A, edge.B, new Color(1, 0, 0));
         }
-        await Task.Delay(1 * 1000);
+        await Task.Delay(200);
         ddMst.QueueFree();
         return list;
     }
 
-    public async Task<List<(Vector2 A, Vector2 B)>> AddHallways(
+    public async Task<List<Hallway>> AddHallways(
         List<(RoomVisualizer roomA, RoomVisualizer roomB)> roomEdges
     )
     {
-        var hallways = new List<(Vector2 A, Vector2 B)>();
+        var hallways = new List<Hallway>();
         foreach (var (roomA, roomB) in roomEdges)
         {
             var roomARect = roomA.GetRect();
@@ -258,7 +258,7 @@ public partial class RoomGenerator : Node2D
             {
                 var hallwayStart = new Vector2(roomACenter.X, midpoint.Y).SnapToGrid();
                 var hallwayEnd = new Vector2(roomBCenter.X, midpoint.Y).SnapToGrid();
-                hallways.Add((hallwayStart, hallwayEnd));
+                hallways.Add(new Hallway(hallwayStart, hallwayEnd));
             }
             // vertical hallway
             else if (
@@ -276,7 +276,7 @@ public partial class RoomGenerator : Node2D
             {
                 var hallwayStart = new Vector2(midpoint.X, roomACenter.Y).SnapToGrid();
                 var hallwayEnd = new Vector2(midpoint.X, roomBCenter.Y).SnapToGrid();
-                hallways.Add((hallwayStart, hallwayEnd));
+                hallways.Add(new Hallway(hallwayStart, hallwayEnd));
             }
             // both!
             else
@@ -285,8 +285,8 @@ public partial class RoomGenerator : Node2D
                 var sourceEnd = new Vector2(roomACenter.X, roomBCenter.Y).SnapToGrid();
                 var targetEnd = roomBCenter.SnapToGrid();
 
-                hallways.Add((sourceStart, sourceEnd));
-                hallways.Add((sourceEnd, targetEnd));
+                hallways.Add(new Hallway(sourceStart, sourceEnd));
+                hallways.Add(new Hallway(sourceEnd, targetEnd));
             }
         }
 
@@ -295,25 +295,26 @@ public partial class RoomGenerator : Node2D
         var hallwayColor = new Color(0, 0, 0);
         AddChild(ddHalways);
         // debuggin
-        foreach (var (prev, next) in hallways)
+        foreach (var h in hallways)
         {
-            ddHalways.AddLine(prev, next, hallwayColor);
+            ddHalways.AddLine(h.A, h.B, hallwayColor);
         }
         return hallways;
     }
 
-    public async Task<List<RoomVisualizer>> IntersectRooms(List<(Vector2 A, Vector2 B)> hallways)
+    public async Task<List<RoomVisualizer>> IntersectRooms(List<Hallway> hallways)
     {
         var intersectedRooms = new List<RoomVisualizer>();
         var debugNodes = new List<Node2D>();
         var spaceState = GetWorld2D().DirectSpaceState;
-        foreach (var (A, _B) in hallways)
+        foreach (var h in hallways)
         {
-            var isVertical = A.X == _B.X;
+            var A = h.A;
+            var _B = h.B;
             var B = _B;
 
             // push B out to thicken to hallway size, so it's not a hallway with a 0 dimension.
-            if (isVertical)
+            if (h.Orientation == Hallway.OrientationType.Vertical)
             {
                 B += new Vector2(Dim, 0);
             }
@@ -325,6 +326,9 @@ public partial class RoomGenerator : Node2D
             var BA = B - A;
             var rectCenter = BA / 2 + A;
             var size = BA.Abs();
+            // var rect = h.GetRect();
+            // var size = rect.Size;
+            // var rectCenter = rect.GetCenter();
 
             var rectangle = new RectangleShape2D();
             rectangle.Size = size;
@@ -354,10 +358,10 @@ public partial class RoomGenerator : Node2D
                 room.FillColor = new Color(0, 1, 0, 0.2f);
                 intersectedRooms.Add(room);
             }
-            await Task.Delay((int)(0.5f * 1000));
+            await Task.Delay(10);
         }
 
-        await Task.Delay(2 * 1000);
+        await Task.Delay(200);
         // foreach (var dbgNodes in debugNodes)
         // {
         //     dbgNodes.QueueFree();
@@ -366,17 +370,67 @@ public partial class RoomGenerator : Node2D
         return intersectedRooms;
     }
 
-    public async Task FillRooms(List<RoomVisualizer> rooms)
+    public async Task FillRooms(List<RoomVisualizer> rooms, List<Hallway> hallways)
     {
         tileMapper.ZIndex = 1000;
         foreach (var r in rooms)
         {
-            GD.Print("Room r.id = ", r.Id, r.GetPerimeter());
             foreach (Vector2I position in r.GetPerimeter())
             {
                 tileMapper.FillCell(position);
             }
         }
+        await Task.Delay(200);
+
+        // step along the hallway and remove blocks!
+        foreach (var h in hallways)
+        {
+            var a = h.A;
+            var b = h.B;
+            var direction = (b - a) / Constants.GridSize;
+            var unitDirection = direction.Normalized().Round();
+            var iterations = (int)Mathf.Max(Mathf.Abs(direction.X), Mathf.Abs(direction.Y));
+            var position = a;
+
+            GD.Print($"hallway1 {a}-{b} has {iterations}");
+
+            for (var i = 0; i < iterations; i++)
+            {
+                position += unitDirection * Constants.GridSize;
+                var grid = position.ToGrid();
+                GD.Print($"hallway2 {grid}");
+                tileMapper.UnfillCell(grid);
+            }
+        }
+    }
+
+    public void SpawnPlayer(List<RoomVisualizer> rooms)
+    {
+        var randIndx = rng.RandiRange(0, rooms.Count - 1);
+        var room = rooms[randIndx];
+        var rect = room.GetRect();
+        var location =
+            rect.Position
+            + new Vector2(
+                (rect.Size.X - 2 * Constants.GridSize) * rng.Randf(),
+                (rect.Size.Y - 2 * Constants.GridSize) * rng.Randf()
+            )
+            + new Vector2(Constants.GridSize, Constants.GridSize);
+        var snappedLocation = location.SnapToGrid();
+
+        var spawn = PlayerSpawn.Create();
+        spawn.Position = snappedLocation;
+        AddChild(spawn);
+        var dc = new DebugCircle();
+        dc.Radius = 50;
+        dc.Position = snappedLocation;
+        AddChild(dc);
+
+        var player = Player.Create();
+        player.Position = spawn.Position + new Vector2(Constants.GridSize / 2, Constants.GridSize);
+        AddChild(player);
+        player.Initialize();
+        GameManager.Instance.PossessCharacter(player);
     }
 
     private Vector2I GenerateNormalRadomRoomSize()

@@ -35,14 +35,27 @@ public partial class Player : CharacterBody2D
 
     private FogOfWar fogOfWar;
 
-    public override void _Ready()
+    public Camera2D Camera;
+
+    private bool isInitialized = false;
+
+    public void Initialize()
     {
         ledgeDetector = GetNode<RayCast2D>("Body/LedgeDetector");
         ladderDetector = GetNode<RayCast2D>("LadderDetector");
+        Camera = GetNode<Camera2D>("Camera2D");
         body = GetNode<Sprite2D>("Body");
         originalBodyScale = body.Scale;
+        isInitialized = true;
+    }
 
-        fogOfWar = GetParent().GetNode<FogOfWar>("FogOfWar");
+    public override void _Ready()
+    {
+        fogOfWar = GetParent().GetNodeOrNull<FogOfWar>("FogOfWar");
+        if (!isInitialized)
+        {
+            Initialize();
+        }
     }
 
     public override void _PhysicsProcess(double delta)

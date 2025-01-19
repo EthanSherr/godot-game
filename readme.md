@@ -39,3 +39,6 @@ https://tinysubversions.com/spelunkyGen/
 # BUILD CONFIGS
 
 https://www.youtube.com/watch?v=PhrwjHdsALM&ab_channel=JaceVarlet
+
+# tilemap resource learning
+https://www.youtube.com/watch?v=2o_IiotMnls&ab_channel=CashewOldDew
