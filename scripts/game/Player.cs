@@ -9,8 +9,14 @@ public partial class Player : CharacterBody2D
 	private static string InputRight = "ui_right";
 	private static string InputLeft = "ui_left";
 
+	private static string Attack = "ui_accept";
+
 	[Export]
 	public float Speed = 120f; // Maximum horizontal speed
+
+	
+	[Export]
+	public float SpeedWhileAttacking = 30f; // Maximum horizontal speed
 
 	[Export]
 	public float Acceleration = 800f; // Acceleration rate
@@ -35,6 +41,8 @@ public partial class Player : CharacterBody2D
 
 	private AnimationPlayer animationPlayer;
 
+	private Node2D meleAttachment;
+
 	private FogOfWar fogOfWar;
 
 	public Camera2D Camera;
@@ -47,7 +55,13 @@ public partial class Player : CharacterBody2D
 		ladderDetector = GetNode<RayCast2D>("LadderDetector");
 		Camera = GetNode<Camera2D>("Camera2D");
 		body = GetNode<Sprite2D>("Body");
+		// initialize the meleattachment
+		meleAttachment = GetNode<Node2D>("Body/MeleAttachment");
+		meleAttachment.Visible = false;
+
 		animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
+    animationPlayer.Connect("animation_finished", new Callable(this, nameof(OnAnimationFinished)));
+
 		originalBodyScale = body.Scale;
 		isInitialized = true;
 	}
@@ -79,12 +93,19 @@ public partial class Player : CharacterBody2D
 		MoveAndSlide();
 	}
 
+	bool isAttacking = false;
 	public override void _Process(double delta)
 	{
-		GD.Print("hello2");
+		if (Input.IsKeyPressed(Key.Ctrl) && !isAttacking) {
+			attack();
+		}
+
 		if (fogOfWar != null)
 		{
 			fogOfWar.Reveal(GlobalPosition, 75);
+		}
+		if (isAttacking) {
+			return;
 		}
 		if (isLedgeGrabbing) {
 			animationPlayer.Play("hang");
@@ -106,6 +127,23 @@ public partial class Player : CharacterBody2D
 		} else {
 			animationPlayer.Play("idle");
 		}
+	}
+
+	private void attack() {
+		isAttacking = true;
+		meleAttachment.Visible = true;
+		animationPlayer.Play("attack");
+	}
+	private void OnAnimationFinished(string animName)
+	{
+			// Check if the finished animation is the attack animation
+			if (animName == "attack")
+			{
+					GD.Print("Attack animation finished!");
+					isAttacking = false;
+					meleAttachment.Visible = false;
+					// Perform any actions needed after the animation finishes
+			}
 	}
 
 	private static float Mult = 1f;
@@ -199,7 +237,11 @@ public partial class Player : CharacterBody2D
 			}
 		}
 		// clamp horizontal
-		velocity.X = Mathf.Clamp(velocity.X, -Speed, Speed);
+		var maxSpeed = Speed;
+		if (isAttacking && IsOnFloor()) {
+			maxSpeed = SpeedWhileAttacking;
+		}
+		velocity.X = Mathf.Clamp(velocity.X, -maxSpeed, maxSpeed);
 	}
 
 	private void ApplyGravity(ref Vector2 velocity, double delta)
