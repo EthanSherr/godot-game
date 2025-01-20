@@ -3,295 +3,319 @@ using Godot;
 
 public partial class Player : CharacterBody2D
 {
-    private static string InputUp = "ui_up";
-    private static string InputDown = "ui_down";
-    private static string InputJump = "ui_select";
-    private static string InputRight = "ui_right";
-    private static string InputLeft = "ui_left";
+	private static string InputUp = "ui_up";
+	private static string InputDown = "ui_down";
+	private static string InputJump = "ui_select";
+	private static string InputRight = "ui_right";
+	private static string InputLeft = "ui_left";
 
-    [Export]
-    public float Speed = 120f; // Maximum horizontal speed
+	[Export]
+	public float Speed = 120f; // Maximum horizontal speed
 
-    [Export]
-    public float Acceleration = 800f; // Acceleration rate
+	[Export]
+	public float Acceleration = 800f; // Acceleration rate
 
-    [Export]
-    public float Friction = 600f; // Deceleration rate
+	[Export]
+	public float Friction = 600f; // Deceleration rate
 
-    [Export]
-    public float Gravity = 1000f;
+	[Export]
+	public float Gravity = 1000f;
 
-    // state tracking for jumping
-    private bool isJumping = false;
-    private float jumpTime = 0f;
+	// state tracking for jumping
+	private bool isJumping = false;
+	private float jumpTime = 0f;
 
-    private RayCast2D ledgeDetector;
-    private Sprite2D body;
+	private RayCast2D ledgeDetector;
+	private Sprite2D body;
 
-    // The original Scale of the graphic representation
-    private Vector2 originalBodyScale;
+	// The original Scale of the graphic representation
+	private Vector2 originalBodyScale;
 
-    private RayCast2D ladderDetector;
+	private RayCast2D ladderDetector;
 
-    private FogOfWar fogOfWar;
+	private AnimationPlayer animationPlayer;
 
-    public Camera2D Camera;
+	private FogOfWar fogOfWar;
 
-    private bool isInitialized = false;
+	public Camera2D Camera;
 
-    public void Initialize()
-    {
-        ledgeDetector = GetNode<RayCast2D>("Body/LedgeDetector");
-        ladderDetector = GetNode<RayCast2D>("LadderDetector");
-        Camera = GetNode<Camera2D>("Camera2D");
-        body = GetNode<Sprite2D>("Body");
-        originalBodyScale = body.Scale;
-        isInitialized = true;
-    }
+	private bool isInitialized = false;
 
-    public override void _Ready()
-    {
-        fogOfWar = GetParent().GetNodeOrNull<FogOfWar>("FogOfWar");
-        if (!isInitialized)
-        {
-            Initialize();
-        }
-    }
+	public void Initialize()
+	{
+		ledgeDetector = GetNode<RayCast2D>("Body/LedgeDetector");
+		ladderDetector = GetNode<RayCast2D>("LadderDetector");
+		Camera = GetNode<Camera2D>("Camera2D");
+		body = GetNode<Sprite2D>("Body");
+		animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
+		originalBodyScale = body.Scale;
+		isInitialized = true;
+	}
 
-    public override void _PhysicsProcess(double delta)
-    {
-        Vector2 velocity = Velocity;
+	public override void _Ready()
+	{
+		fogOfWar = GetParent().GetNodeOrNull<FogOfWar>("FogOfWar");
+		if (!isInitialized)
+		{
+			Initialize();
+		}
+	}
 
-        ApplyLedgeGrab(ref velocity, delta);
+	public override void _PhysicsProcess(double delta)
+	{
+		Vector2 velocity = Velocity;
 
-        ApplyClimb(ref velocity, delta);
+		ApplyLedgeGrab(ref velocity, delta);
 
-        ApplyHorizontalVelocity(ref velocity, delta);
-        ApplyThresholdJump(ref velocity, delta);
-        ApplyGravity(ref velocity, delta);
+		ApplyClimb(ref velocity, delta);
 
-        ApplyPlayerOrientation(ref velocity);
+		ApplyHorizontalVelocity(ref velocity, delta);
+		ApplyThresholdJump(ref velocity, delta);
+		ApplyGravity(ref velocity, delta);
 
-        Velocity = velocity;
-        MoveAndSlide();
-    }
+		ApplyPlayerOrientation(ref velocity);
 
-    public override void _Process(double delta)
-    {
-        if (fogOfWar != null)
-        {
-            fogOfWar.Reveal(GlobalPosition, 75);
-        }
-    }
+		Velocity = velocity;
+		MoveAndSlide();
+	}
 
-    private static float Mult = 1f;
+	public override void _Process(double delta)
+	{
+		if (fogOfWar != null)
+		{
+			fogOfWar.Reveal(GlobalPosition, 75);
+		}
+		if (isLedgeGrabbing) {
+			animationPlayer.Play("hang");
+		} else
+		if (!IsOnFloor()) {
+			var zeroGThreshold = 50;
+			animationPlayer.Play("jump");
+			if (Velocity.Y < - zeroGThreshold) {
+				animationPlayer.Seek(0.0, true);
+			} else if (Velocity.Y < zeroGThreshold)
+			{
+				animationPlayer.Seek(0.1, true);
+			} else {
+				animationPlayer.Seek(0.2, true);
+			}
+		} else
+		if (Mathf.Abs(Velocity.X) > 0) {
+			animationPlayer.Play("walk_right");
+		} else {
+			animationPlayer.Play("idle");
+		}
+	}
 
-    [Export]
-    public float SmallHop = -150f * Mult;
+	private static float Mult = 1f;
 
-    [Export]
-    public float MediumHop = -200f * Mult;
+	[Export]
+	public float SmallHop = -150f * Mult;
 
-    [Export]
-    public float HighHop = -300f * Mult;
+	[Export]
+	public float MediumHop = -200f * Mult;
 
-    [Export]
-    public float TimeBetweenJumps = 0.048f;
+	[Export]
+	public float HighHop = -300f * Mult;
 
-    private bool ApplyThresholdJump(ref Vector2 velocity, double delta)
-    {
-        // start jumping?
-        if (Input.IsActionJustPressed(InputJump) && CanJump())
-        {
-            isJumping = true;
-            jumpTime = 0.0f;
+	[Export]
+	public float TimeBetweenJumps = 0.048f;
 
-            if (isLedgeGrabbing)
-            {
-                // end ledge grabbing from a jump
-                isLedgeGrabbing = false;
-            }
-            if (isClimbing)
-            {
-                isClimbing = false;
-            }
-        }
+	private bool ApplyThresholdJump(ref Vector2 velocity, double delta)
+	{
+		// start jumping?
+		if (Input.IsActionJustPressed(InputJump) && CanJump())
+		{
+			isJumping = true;
+			jumpTime = 0.0f;
 
-        // apply jump if jumping!
-        if (!isJumping)
-            return false;
+			if (isLedgeGrabbing)
+			{
+				// end ledge grabbing from a jump
+				isLedgeGrabbing = false;
+			}
+			if (isClimbing)
+			{
+				isClimbing = false;
+			}
+		}
 
-        jumpTime += (float)delta;
+		// apply jump if jumping!
+		if (!isJumping)
+			return false;
 
-        bool isMaxJump = false;
+		jumpTime += (float)delta;
 
-        if (jumpTime < TimeBetweenJumps)
-        {
-            velocity.Y = SmallHop;
-        }
-        else if (jumpTime < 2 * TimeBetweenJumps)
-        {
-            velocity.Y = MediumHop;
-        }
-        else if (jumpTime < 3 * TimeBetweenJumps)
-        {
-            velocity.Y = HighHop;
-            isMaxJump = true;
-        }
+		bool isMaxJump = false;
 
-        if (isMaxJump || !Input.IsActionPressed(InputJump))
-        {
-            isJumping = false;
-            jumpTime = 0.0f;
-        }
+		if (jumpTime < TimeBetweenJumps)
+		{
+			velocity.Y = SmallHop;
+		}
+		else if (jumpTime < 2 * TimeBetweenJumps)
+		{
+			velocity.Y = MediumHop;
+		}
+		else if (jumpTime < 3 * TimeBetweenJumps)
+		{
+			velocity.Y = HighHop;
+			isMaxJump = true;
+		}
 
-        return isJumping;
-    }
+		if (isMaxJump || !Input.IsActionPressed(InputJump))
+		{
+			isJumping = false;
+			jumpTime = 0.0f;
+		}
 
-    private bool CanJump()
-    {
-        return IsOnFloor() || isLedgeGrabbing || isClimbing;
-    }
+		return isJumping;
+	}
 
-    private void ApplyHorizontalVelocity(ref Vector2 velocity, double delta)
-    {
-        if (isLedgeGrabbing)
-            return;
-        // Handle input for horizontal movement
-        int direction = GetHorizontalInput();
+	private bool CanJump()
+	{
+		return IsOnFloor() || isLedgeGrabbing || isClimbing;
+	}
 
-        if (direction != 0)
-        {
-            velocity.X += direction * Acceleration * (float)delta;
-        }
-        else
-        {
-            int sign = Math.Sign(velocity.X);
-            velocity.X -= sign * Friction * (float)delta;
-            bool frictionOvershot = Math.Sign(velocity.X) != sign;
-            if (frictionOvershot)
-            {
-                velocity.X = 0f;
-            }
-        }
-        // clamp horizontal
-        velocity.X = Mathf.Clamp(velocity.X, -Speed, Speed);
-    }
+	private void ApplyHorizontalVelocity(ref Vector2 velocity, double delta)
+	{
+		if (isLedgeGrabbing)
+			return;
+		// Handle input for horizontal movement
+		int direction = GetHorizontalInput();
 
-    private void ApplyGravity(ref Vector2 velocity, double delta)
-    {
-        if (isLedgeGrabbing || isClimbing)
-            return;
-        velocity.Y += Gravity * (float)delta;
-    }
+		if (direction != 0)
+		{
+			velocity.X += direction * Acceleration * (float)delta;
+		}
+		else
+		{
+			int sign = Math.Sign(velocity.X);
+			velocity.X -= sign * Friction * (float)delta;
+			bool frictionOvershot = Math.Sign(velocity.X) != sign;
+			if (frictionOvershot)
+			{
+				velocity.X = 0f;
+			}
+		}
+		// clamp horizontal
+		velocity.X = Mathf.Clamp(velocity.X, -Speed, Speed);
+	}
 
-    private bool isLedgeGrabbing = false;
+	private void ApplyGravity(ref Vector2 velocity, double delta)
+	{
+		if (isLedgeGrabbing || isClimbing)
+			return;
+		velocity.Y += Gravity * (float)delta;
+	}
 
-    private bool ApplyLedgeGrab(ref Vector2 velocity, double delta)
-    {
-        // test if we can begin ledge grabbing
-        if (!isLedgeGrabbing && !IsOnFloor() && Velocity.Y > 0)
-        {
-            int playerDirection = GetHorizontalInput();
-            // TODO, channel?
-            Vector2 ledgeDetectorCollision = ledgeDetector.GetCollisionPoint();
-            float collisionOffsetX = ledgeDetectorCollision.X - GlobalPosition.X;
-            int directionOfLedge = Math.Sign(collisionOffsetX);
+	private bool isLedgeGrabbing = false;
 
-            if (ledgeDetector.IsColliding() && directionOfLedge == playerDirection) //&& !freeSpaceChecker.IsColliding())
-            {
-                isLedgeGrabbing = true;
-                velocity = Vector2.Zero;
+	private bool ApplyLedgeGrab(ref Vector2 velocity, double delta)
+	{
+		// test if we can begin ledge grabbing
+		if (!isLedgeGrabbing && !IsOnFloor() && Velocity.Y > 0)
+		{
+			int playerDirection = GetHorizontalInput();
+			// TODO, channel?
+			Vector2 ledgeDetectorCollision = ledgeDetector.GetCollisionPoint();
+			float collisionOffsetX = ledgeDetectorCollision.X - GlobalPosition.X;
+			int directionOfLedge = Math.Sign(collisionOffsetX);
 
-                DebugPoint.Create(ledgeDetectorCollision, GetTree().Root);
+			if (ledgeDetector.IsColliding() && directionOfLedge == playerDirection) //&& !freeSpaceChecker.IsColliding())
+			{
+				isLedgeGrabbing = true;
+				velocity = Vector2.Zero;
 
-                GD.Print("Begin ledge grab");
-                // Snap to grab position
-                Vector2 collisionOffset = ledgeDetectorCollision - ledgeDetector.GlobalPosition;
-                GlobalPosition = GlobalPosition + collisionOffset;
-            }
-        }
-        // test to exit ledge grab
-        else if (isLedgeGrabbing && Input.IsActionJustPressed(InputDown))
-        {
-            isLedgeGrabbing = false;
-            velocity.Y = 100;
+				DebugPoint.Create(ledgeDetectorCollision, GetTree().Root);
 
-            GD.Print("End ledge grab");
-        }
+				GD.Print("Begin ledge grab");
+				// Snap to grab position
+				Vector2 collisionOffset = ledgeDetectorCollision - ledgeDetector.GlobalPosition;
+				GlobalPosition = GlobalPosition + collisionOffset;
+			}
+		}
+		// test to exit ledge grab
+		else if (isLedgeGrabbing && Input.IsActionJustPressed(InputDown))
+		{
+			isLedgeGrabbing = false;
+			velocity.Y = 100;
 
-        return isLedgeGrabbing;
-    }
+			GD.Print("End ledge grab");
+		}
 
-    private int GetHorizontalInput()
-    {
-        int direction = 0;
-        if (Input.IsActionPressed(InputRight))
-        {
-            direction += 1;
-        }
-        else if (Input.IsActionPressed(InputLeft))
-        {
-            direction += -1;
-        }
-        return direction;
-    }
+		return isLedgeGrabbing;
+	}
 
-    private void ApplyPlayerOrientation(ref Vector2 velocity)
-    {
-        int direction = Math.Sign(velocity.X);
-        if (direction == 0)
-            return;
-        body.Scale = new Vector2(direction * originalBodyScale.X, originalBodyScale.Y);
-    }
+	private int GetHorizontalInput()
+	{
+		int direction = 0;
+		if (Input.IsActionPressed(InputRight))
+		{
+			direction += 1;
+		}
+		else if (Input.IsActionPressed(InputLeft))
+		{
+			direction += -1;
+		}
+		return direction;
+	}
 
-    [Export]
-    private float climbUpSpeed = -50f;
+	private void ApplyPlayerOrientation(ref Vector2 velocity)
+	{
+		int direction = Math.Sign(velocity.X);
+		if (direction == 0)
+			return;
+		body.Scale = new Vector2(direction * originalBodyScale.X, originalBodyScale.Y);
+	}
 
-    [Export]
-    private float climbDownSpeed = 200f;
+	[Export]
+	private float climbUpSpeed = -50f;
 
-    private bool isClimbing = false;
+	[Export]
+	private float climbDownSpeed = 200f;
 
-    private void ApplyClimb(ref Vector2 velocity, double delta)
-    {
-        // no ladder climbing while ledge grabbing
-        if (isLedgeGrabbing)
-            return;
+	private bool isClimbing = false;
 
-        if (!isClimbing && Input.IsActionPressed(InputUp) && ladderDetector.IsColliding())
-        {
-            GD.Print("Climbing: start");
-            isClimbing = true;
-        }
+	private void ApplyClimb(ref Vector2 velocity, double delta)
+	{
+		// no ladder climbing while ledge grabbing
+		if (isLedgeGrabbing)
+			return;
 
-        if (isClimbing && !ladderDetector.IsColliding())
-        {
-            GD.Print("Climbing: stop");
-            isClimbing = false;
-        }
+		if (!isClimbing && Input.IsActionPressed(InputUp) && ladderDetector.IsColliding())
+		{
+			GD.Print("Climbing: start");
+			isClimbing = true;
+		}
 
-        if (!isClimbing)
-            return;
+		if (isClimbing && !ladderDetector.IsColliding())
+		{
+			GD.Print("Climbing: stop");
+			isClimbing = false;
+		}
 
-        if (Input.IsActionPressed(InputUp))
-        {
-            velocity.Y = climbUpSpeed;
-        }
-        else if (Input.IsActionPressed(InputDown))
-        {
-            velocity.Y = climbDownSpeed;
-        }
-        else
-        {
-            velocity.Y = 0;
-        }
-    }
+		if (!isClimbing)
+			return;
 
-    private static string ScenePath = "res://scripts/game/Player.tscn";
+		if (Input.IsActionPressed(InputUp))
+		{
+			velocity.Y = climbUpSpeed;
+		}
+		else if (Input.IsActionPressed(InputDown))
+		{
+			velocity.Y = climbDownSpeed;
+		}
+		else
+		{
+			velocity.Y = 0;
+		}
+	}
 
-    public static Player Create()
-    {
-        return NodeUtils.CreateFromScene<Player>(ScenePath);
-    }
+	private static string ScenePath = "res://scripts/game/Player.tscn";
+
+	public static Player Create()
+	{
+		return NodeUtils.CreateFromScene<Player>(ScenePath);
+	}
+
 }

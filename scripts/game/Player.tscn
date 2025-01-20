@@ -1,39 +1,131 @@
-[gd_scene load_steps=4 format=3 uid="uid://by7n13mtf7h4a"]
+[gd_scene load_steps=10 format=3 uid="uid://by7n13mtf7h4a"]
 
-[ext_resource type="Texture2D" uid="uid://mgc81jcou2m6" path="res://assets/icon.svg" id="1_6x5lj"]
 [ext_resource type="Script" path="res://scripts/game/Player.cs" id="1_i2k4n"]
+[ext_resource type="Texture2D" uid="uid://dfiw2yljrmo82" path="res://assets/walk-practice001_walk.png" id="2_ld0yx"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6r0om"]
-size = Vector2(17, 17)
+size = Vector2(5, 14)
+
+[sub_resource type="Animation" id="Animation_a3453"]
+resource_name = "walk_right"
+length = 0.8
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Body:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [2, 3, 4, 5, 6, 7, 8, 9]
+}
+
+[sub_resource type="Animation" id="Animation_qv3id"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Body:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+
+[sub_resource type="Animation" id="Animation_shdlr"]
+resource_name = "idle"
+length = 0.4
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Body:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [0, 1]
+}
+
+[sub_resource type="Animation" id="Animation_i3orj"]
+resource_name = "jump"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Body:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [10, 11, 12]
+}
+
+[sub_resource type="Animation" id="Animation_ox8yn"]
+resource_name = "hang"
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Body:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [13]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_3c0v4"]
+_data = {
+"RESET": SubResource("Animation_qv3id"),
+"hang": SubResource("Animation_ox8yn"),
+"idle": SubResource("Animation_shdlr"),
+"jump": SubResource("Animation_i3orj"),
+"walk_right": SubResource("Animation_a3453")
+}
 
 [node name="Player" type="CharacterBody2D"]
 collision_layer = 4
 script = ExtResource("1_i2k4n")
 
 [node name="Body" type="Sprite2D" parent="."]
-position = Vector2(-5.06639e-07, -9)
-scale = Vector2(0.125, 0.125)
-texture = ExtResource("1_6x5lj")
+position = Vector2(2.38419e-07, -9)
+scale = Vector2(1.125, 1.125)
+texture = ExtResource("2_ld0yx")
+hframes = 15
 
 [node name="LedgeDetector" type="RayCast2D" parent="Body"]
-position = Vector2(96, -72)
-scale = Vector2(8, 8)
+position = Vector2(3.55556, -7.11111)
 target_position = Vector2(0, 10)
 
-[node name="ForwardMarker" type="Line2D" parent="Body"]
-position = Vector2(8, 0)
-points = PackedVector2Array(4.05312e-06, 0, 72, 0)
-
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, -9)
+position = Vector2(-0.5, -7)
 shape = SubResource("RectangleShape2D_6r0om")
 
 [node name="LadderDetector" type="RayCast2D" parent="."]
+visible = false
 position = Vector2(0, -8)
 target_position = Vector2(0, -5)
 collision_mask = 2
 hit_from_inside = true
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(8, 8)
+visible = false
+zoom = Vector2(3, 3)
 metadata/_edit_lock_ = true
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_3c0v4")
+}
