@@ -81,6 +81,7 @@ public partial class Player : CharacterBody2D
 
 	public override void _Process(double delta)
 	{
+		GD.Print("hello2");
 		if (fogOfWar != null)
 		{
 			fogOfWar.Reveal(GlobalPosition, 75);
