@@ -51,6 +51,7 @@ ui_up={
 2d_physics/layer_2="Ladder"
 2d_physics/layer_3="Player"
 2d_physics/layer_4="Room"
+2d_physics/layer_5="Item"
 
 [rendering]
 

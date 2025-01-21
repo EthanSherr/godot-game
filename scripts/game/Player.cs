@@ -110,6 +110,18 @@ public partial class Player : CharacterBody2D
 		if (isAttacking) {
 			return;
 		}
+		if (isClimbing) {
+			var epsilon = 5;
+			if (Velocity.Y < -epsilon) {
+				animationPlayer.Play("climb");
+			} else if (Velocity.Y > epsilon) {
+				// DOWN!
+				animationPlayer.Play("climb");
+				animationPlayer.Seek(0.2, true);
+			} else {
+				animationPlayer.Pause();
+			}
+		} else
 		if (isLedgeGrabbing) {
 			animationPlayer.Play("hang");
 		} else
@@ -330,6 +342,7 @@ public partial class Player : CharacterBody2D
 
 	private void ApplyPlayerOrientation(ref Vector2 velocity)
 	{
+		if (isAttacking) return;
 		int direction = Math.Sign(velocity.X);
 		if (direction == 0)
 			return;

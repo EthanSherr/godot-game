@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://by7n13mtf7h4a"]
+[gd_scene load_steps=13 format=3 uid="uid://by7n13mtf7h4a"]
 
 [ext_resource type="Script" path="res://scripts/game/Player.cs" id="1_i2k4n"]
 [ext_resource type="Texture2D" uid="uid://dfiw2yljrmo82" path="res://assets/walk-practice001_walk.png" id="2_ld0yx"]
@@ -6,6 +6,68 @@
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6r0om"]
 size = Vector2(5, 14)
+
+[sub_resource type="Animation" id="Animation_08o04"]
+resource_name = "attack"
+length = 0.65
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Body:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.4),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [14, 15]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Body/MeleAttachment:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.4),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [Vector2(-4, 1), Vector2(5, 0)]
+}
+tracks/2/type = "method"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0.4, 0.65),
+"transitions": PackedFloat32Array(1, 1),
+"values": [{
+"args": [],
+"method": &"BeginMeleDamage"
+}, {
+"args": [],
+"method": &"EndMeleDamage"
+}]
+}
+
+[sub_resource type="Animation" id="Animation_f7er1"]
+resource_name = "climb"
+length = 0.6
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Body:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [16, 17, 18]
+}
 
 [sub_resource type="Animation" id="Animation_ox8yn"]
 resource_name = "hang"
@@ -72,9 +134,8 @@ tracks/0/keys = {
 "values": [2, 3, 4, 5, 6, 7, 8, 9]
 }
 
-[sub_resource type="Animation" id="Animation_08o04"]
-resource_name = "attack"
-length = 0.65
+[sub_resource type="Animation" id="Animation_npjgv"]
+length = 0.001
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -82,44 +143,17 @@ tracks/0/path = NodePath("Body:frame")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.4),
-"transitions": PackedFloat32Array(1, 1),
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [14, 15]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("Body/MeleAttachment:position")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0, 0.4),
-"transitions": PackedFloat32Array(1, 1),
-"update": 1,
-"values": [Vector2(-4, 1), Vector2(5, 0)]
-}
-tracks/2/type = "method"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath(".")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0.4, 0.65),
-"transitions": PackedFloat32Array(1, 1),
-"values": [{
-"args": [],
-"method": &"BeginMeleDamage"
-}, {
-"args": [],
-"method": &"EndMeleDamage"
-}]
+"values": [15]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_3c0v4"]
 _data = {
+"RESET": SubResource("Animation_npjgv"),
 "attack": SubResource("Animation_08o04"),
+"climb": SubResource("Animation_f7er1"),
 "hang": SubResource("Animation_ox8yn"),
 "idle": SubResource("Animation_shdlr"),
 "jump": SubResource("Animation_i3orj"),
@@ -134,7 +168,7 @@ script = ExtResource("1_i2k4n")
 position = Vector2(2.38419e-07, -9)
 scale = Vector2(1.125, 1.125)
 texture = ExtResource("2_ld0yx")
-hframes = 16
+hframes = 19
 frame = 15
 
 [node name="LedgeDetector" type="RayCast2D" parent="Body"]
@@ -143,7 +177,7 @@ target_position = Vector2(0, 10)
 
 [node name="MeleAttachment" type="Node2D" parent="Body"]
 visible = false
-position = Vector2(5, 0)
+position = Vector2(-4, 1)
 
 [node name="Weapon" parent="Body/MeleAttachment" instance=ExtResource("3_wm31y")]
 
@@ -160,7 +194,7 @@ hit_from_inside = true
 
 [node name="Camera2D" type="Camera2D" parent="."]
 visible = false
-zoom = Vector2(3, 3)
+zoom = Vector2(4, 4)
 metadata/_edit_lock_ = true
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]

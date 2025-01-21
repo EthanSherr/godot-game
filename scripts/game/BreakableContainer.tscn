@@ -3,11 +3,11 @@
 [ext_resource type="Script" path="res://scripts/game/BreakableContainer.cs" id="1_tfp2f"]
 [ext_resource type="Texture2D" uid="uid://ob2y8sfk6typ" path="res://assets/placeables-01.png" id="2_3vm4e"]
 
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_dxs6i"]
-radius = 4.0
-height = 12.0
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_i3uoe"]
+size = Vector2(8, 11)
 
-[node name="BreakableContainer" type="Node2D"]
+[node name="BreakableContainer" type="RigidBody2D"]
+collision_layer = 16
 script = ExtResource("1_tfp2f")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
@@ -16,8 +16,6 @@ texture = ExtResource("2_3vm4e")
 hframes = 3
 frame = 2
 
-[node name="Area2D" type="Area2D" parent="."]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
-position = Vector2(0, -6)
-shape = SubResource("CapsuleShape2D_dxs6i")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -5.5)
+shape = SubResource("RectangleShape2D_i3uoe")

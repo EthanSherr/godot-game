@@ -157,7 +157,7 @@ tile_set = SubResource("TileSet_x8654")
 [node name="FogOfWar" parent="." instance=ExtResource("3_4cxc6")]
 position = Vector2(121, -22)
 
-[node name="Player" parent="." instance=ExtResource("3_hiffp")]
-
 [node name="BreakableContainer" parent="." instance=ExtResource("4_34j6h")]
 position = Vector2(16, -35)
+
+[node name="Player" parent="." instance=ExtResource("3_hiffp")]
