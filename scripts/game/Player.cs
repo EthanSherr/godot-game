@@ -306,8 +306,6 @@ public partial class Player : CharacterBody2D
 				isLedgeGrabbing = true;
 				velocity = Vector2.Zero;
 
-				DebugPoint.Create(ledgeDetectorCollision, GetTree().Root);
-
 				GD.Print("Begin ledge grab");
 				// Snap to grab position
 				Vector2 collisionOffset = ledgeDetectorCollision - ledgeDetector.GlobalPosition;

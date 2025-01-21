@@ -394,14 +394,26 @@ public partial class RoomGenerator : Node2D
 
             GD.Print($"hallway1 {a}-{b} has {iterations}");
 
-            for (var i = 0; i < iterations; i++)
+            var lols = 2;
+            for (var i = -lols; i < iterations + lols; i++)
             {
                 position += unitDirection * Constants.GridSize;
                 var grid = position.ToGrid();
                 GD.Print($"hallway2 {grid}");
                 tileMapper.UnfillCell(grid);
+                // move to more convenient, ladders in all vertical hallways
+                if (h.Orientation == Hallway.OrientationType.Vertical) {
+                    tileMapper.AddLadder(grid);
+                }
             }
         }
+
+        // foreach (var hallway in hallways) {
+        //     if (hallway.Orientation != Hallway.OrientationType.Vertical) {
+        //         continue;
+        //     }
+        //     foreach (var cell in hallway.)
+        // }
     }
 
     public void SpawnPlayer(List<RoomVisualizer> rooms)
@@ -428,7 +440,9 @@ public partial class RoomGenerator : Node2D
 
         var player = Player.Create();
         player.Position = spawn.Position + new Vector2(Constants.GridSize / 2, Constants.GridSize);
+        player.ZIndex = 10000;
         AddChild(player);
+        
         player.Initialize();
         GameManager.Instance.PossessCharacter(player);
     }
