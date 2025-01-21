@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://by7n13mtf7h4a"]
+[gd_scene load_steps=11 format=3 uid="uid://by7n13mtf7h4a"]
 
 [ext_resource type="Script" path="res://scripts/game/Player.cs" id="1_i2k4n"]
 [ext_resource type="Texture2D" uid="uid://dfiw2yljrmo82" path="res://assets/walk-practice001_walk.png" id="2_ld0yx"]
@@ -6,33 +6,6 @@
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6r0om"]
 size = Vector2(5, 14)
-
-[sub_resource type="Animation" id="Animation_qv3id"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("Body:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [0]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("Body/MeleAttachment:position")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(-4, 1)]
-}
 
 [sub_resource type="Animation" id="Animation_ox8yn"]
 resource_name = "hang"
@@ -126,10 +99,26 @@ tracks/1/keys = {
 "update": 1,
 "values": [Vector2(-4, 1), Vector2(5, 0)]
 }
+tracks/2/type = "method"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0.4, 0.65),
+"transitions": PackedFloat32Array(1, 1),
+"values": [{
+"args": [],
+"method": &"BeginMeleDamage"
+}, {
+"args": [],
+"method": &"EndMeleDamage"
+}]
+}
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_3c0v4"]
 _data = {
-"RESET": SubResource("Animation_qv3id"),
 "attack": SubResource("Animation_08o04"),
 "hang": SubResource("Animation_ox8yn"),
 "idle": SubResource("Animation_shdlr"),
@@ -146,13 +135,15 @@ position = Vector2(2.38419e-07, -9)
 scale = Vector2(1.125, 1.125)
 texture = ExtResource("2_ld0yx")
 hframes = 16
+frame = 15
 
 [node name="LedgeDetector" type="RayCast2D" parent="Body"]
 position = Vector2(3.55556, -7.11111)
 target_position = Vector2(0, 10)
 
 [node name="MeleAttachment" type="Node2D" parent="Body"]
-position = Vector2(-4, 1)
+visible = false
+position = Vector2(5, 0)
 
 [node name="Weapon" parent="Body/MeleAttachment" instance=ExtResource("3_wm31y")]
 

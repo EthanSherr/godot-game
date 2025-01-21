@@ -9,3 +9,7 @@ script = ExtResource("1_ihr3x")
 [node name="Sprite2D" type="Sprite2D" parent="."]
 position = Vector2(1, 0)
 texture = ExtResource("2_ea5pi")
+
+[node name="RayCast2D" type="RayCast2D" parent="."]
+target_position = Vector2(6, 0)
+collision_mask = 4

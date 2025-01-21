@@ -62,6 +62,9 @@ public partial class Player : CharacterBody2D
 		animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
     animationPlayer.Connect("animation_finished", new Callable(this, nameof(OnAnimationFinished)));
 
+
+		equipedWeapon = GetNodeOrNull<Weapon>("Body/MeleAttachment/Weapon");
+
 		originalBodyScale = body.Scale;
 		isInitialized = true;
 	}
@@ -142,8 +145,30 @@ public partial class Player : CharacterBody2D
 					GD.Print("Attack animation finished!");
 					isAttacking = false;
 					meleAttachment.Visible = false;
-					// Perform any actions needed after the animation finishes
 			}
+	}
+	
+	Weapon equipedWeapon;
+	public void SetWeapon(Weapon newWeap) {
+		if (equipedWeapon != null) {
+			equipedWeapon.QueueFree();
+		}
+		equipedWeapon = newWeap;
+		equipedWeapon.AddIgnore(this);
+	}
+	public void BeginMeleDamage() {
+		GD.Print("begin damage!");
+		if (equipedWeapon == null) {
+			return;
+		}
+		equipedWeapon.BeginDamage();
+	}
+
+	public void EndMeleDamage() {
+				if (equipedWeapon == null) {
+			return;
+		}
+		equipedWeapon.EndDamage();
 	}
 
 	private static float Mult = 1f;

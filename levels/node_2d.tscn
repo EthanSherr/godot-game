@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=4 uid="uid://cj32j4uiejkns"]
+[gd_scene load_steps=7 format=4 uid="uid://cj32j4uiejkns"]
 
 [ext_resource type="Texture2D" uid="uid://c8m0egj4anmmh" path="res://assets/Dungeon Tile Set.png" id="2_ywhyu"]
 [ext_resource type="PackedScene" uid="uid://d0w3abeo72obg" path="res://scenes/FogOfWar.tscn" id="3_4cxc6"]
 [ext_resource type="PackedScene" uid="uid://by7n13mtf7h4a" path="res://scripts/game/Player.tscn" id="3_hiffp"]
+[ext_resource type="PackedScene" uid="uid://o4c6w1srcv1y" path="res://scripts/game/BreakableContainer.tscn" id="4_34j6h"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_kh1y6"]
 texture = ExtResource("2_ywhyu")
@@ -157,3 +158,6 @@ tile_set = SubResource("TileSet_x8654")
 position = Vector2(121, -22)
 
 [node name="Player" parent="." instance=ExtResource("3_hiffp")]
+
+[node name="BreakableContainer" parent="." instance=ExtResource("4_34j6h")]
+position = Vector2(16, -35)
