@@ -1,18 +1,18 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 
 public partial class Weapon : Node2D
 {
     RayCast2D ray;
 
+    HashSet<ulong> damageTracker = new HashSet<ulong> { };
+
     public override void _Ready()
     {
         ray = GetNode<RayCast2D>("RayCast2D");
         EndDamage();
     }
-
-    // Called every frame. 'delta' is the elapsed time since the previous frame.
-    public override void _Process(double delta) { }
 
     public void AddIgnore(CollisionObject2D ignore)
     {
@@ -26,11 +26,36 @@ public partial class Weapon : Node2D
 
     public void BeginDamage()
     {
+        GD.Print("weapon enable");
         ray.Enabled = true;
     }
 
     public void EndDamage()
     {
+        GD.Print("weapon disable");
         ray.Enabled = false;
+        damageTracker.Clear();
+    }
+
+    public override void _PhysicsProcess(double delta)
+    {
+        DamageScan();
+    }
+
+    private void DamageScan()
+    {
+        if (!ray.Enabled || !ray.IsColliding())
+        {
+            return;
+        }
+        var collider = ray.GetCollider();
+        if (collider is IDamageable damageable && collider is Node2D node2D)
+        {
+            if (!damageTracker.Contains(collider.GetInstanceId()))
+            {
+                damageTracker.Add(collider.GetInstanceId());
+                damageable.TakeDamage(5);
+            }
+        }
     }
 }

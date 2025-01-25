@@ -42,3 +42,6 @@ https://www.youtube.com/watch?v=PhrwjHdsALM&ab_channel=JaceVarlet
 
 # tilemap resource learning
 https://www.youtube.com/watch?v=2o_IiotMnls&ab_channel=CashewOldDew
+
+# wow pathfinding
+https://www.youtube.com/watch?v=VJHrIP-_tHU&list=PL6Ikt4l3NbVi_9_-TqX-JUsJ9nIFeYAFE&index=2
