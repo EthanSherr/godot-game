@@ -11,24 +11,7 @@ public partial class Player : CharacterBody2D
 
     private static string Attack = "ui_accept";
 
-    [Export]
-    public float Speed = 120f; // Maximum horizontal speed
 
-    [Export]
-    public float SpeedWhileAttacking = 30f; // Maximum horizontal speed
-
-    [Export]
-    public float Acceleration = 800f; // Acceleration rate
-
-    [Export]
-    public float Friction = 600f; // Deceleration rate
-
-    [Export]
-    public float Gravity = 1000f;
-
-    // state tracking for jumping
-    private bool isJumping = false;
-    private float jumpTime = 0f;
 
     private RayCast2D ledgeDetector;
     private Sprite2D body;
@@ -69,11 +52,10 @@ public partial class Player : CharacterBody2D
         );
 
         equipedWeapon = GetNodeOrNull<Weapon>("Body/MeleAttachment/Weapon");
-
         originalBodyScale = body.Scale;
-        isInitialized = true;
 
         Movement = new MovementComponent(this);
+        isInitialized = true;
     }
 
     public override void _Ready()
@@ -90,25 +72,15 @@ public partial class Player : CharacterBody2D
     {
         Movement.Update(delta);
         Vector2 velocity = Velocity;
-        
         ApplyPlayerOrientation(ref velocity);
-        // ApplyGravity(ref velocity, delta);
-        // Velocity = velocity;
         MoveAndSlide();
-        // Vector2 velocity = Velocity;
-        // ApplyLedgeGrab(ref velocity, delta);
-        // ApplyClimb(ref velocity, delta);
-        // ApplyHorizontalVelocity(ref velocity, delta);
-        // ApplyThresholdJump(ref velocity, delta);
-        // ApplyGravity(ref velocity, delta);
-
-        // ApplyPlayerOrientation(ref velocity);
-
-        // Velocity = velocity;
-        // MoveAndSlide();
     }
 
     bool isAttacking = false;
+
+    public bool IsAttacking() {
+        return isAttacking;
+    }
 
 
     public override void _Process(double delta) 
@@ -179,72 +151,12 @@ public partial class Player : CharacterBody2D
         }
     }
 
-    public void _OldProcess(double delta)
-    {
-        if (Input.IsKeyPressed(Key.Ctrl) && !isAttacking)
-        {
-            attack();
-        }
-
-        if (fogOfWar != null)
-        {
-            fogOfWar.Reveal(GlobalPosition, 75);
-        }
-        if (isAttacking)
-        {
-            return;
-        }
-        if (isClimbing)
-        {
-            var epsilon = 5;
-            if (Velocity.Y < -epsilon)
-            {
-                animationPlayer.Play("climb");
-            }
-            else if (Velocity.Y > epsilon)
-            {
-                // DOWN!
-                animationPlayer.Play("climb");
-                animationPlayer.Seek(0.2, true);
-            }
-            else
-            {
-                animationPlayer.Pause();
-            }
-        }
-        else if (isLedgeGrabbing)
-        {
-            animationPlayer.Play("hang");
-        }
-        else if (!IsOnFloor())
-        {
-            var zeroGThreshold = 50;
-            animationPlayer.Play("jump");
-            if (Velocity.Y < -zeroGThreshold)
-            {
-                animationPlayer.Seek(0.0, true);
-            }
-            else if (Velocity.Y < zeroGThreshold)
-            {
-                animationPlayer.Seek(0.1, true);
-            }
-            else
-            {
-                animationPlayer.Seek(0.2, true);
-            }
-        }
-        else if (Mathf.Abs(Velocity.X) > 0)
-        {
-            animationPlayer.Play("walk_right");
-        }
-        else
-        {
-            animationPlayer.Play("idle");
-        }
-    }
-
     private void attack()
     {
+        switch (Movement.GetPlayerState()) {
+            case PlayerStateType.LadderClimb: return;
+            case PlayerStateType.LedgeGrab: return;
+        }
         isAttacking = true;
         meleAttachment.Visible = true;
         animationPlayer.Play("attack");
@@ -292,160 +204,9 @@ public partial class Player : CharacterBody2D
         equipedWeapon.EndDamage();
     }
 
-    private static float Mult = 1f;
-
-    [Export]
-    public float SmallHop = -150f * Mult;
-
-    [Export]
-    public float MediumHop = -200f * Mult;
-
-    [Export]
-    public float HighHop = -300f * Mult;
-
-    [Export]
-    public float TimeBetweenJumps = 0.048f;
-
-    private bool ApplyThresholdJump(ref Vector2 velocity, double delta)
+    private float GetHorizontalInput()
     {
-        // start jumping?
-        if (Input.IsActionJustPressed(InputJump) && CanJump())
-        {
-            isJumping = true;
-            jumpTime = 0.0f;
-
-            if (isLedgeGrabbing)
-            {
-                // end ledge grabbing from a jump
-                isLedgeGrabbing = false;
-            }
-            if (isClimbing)
-            {
-                isClimbing = false;
-            }
-        }
-
-        // apply jump if jumping!
-        if (!isJumping)
-            return false;
-
-        jumpTime += (float)delta;
-
-        bool isMaxJump = false;
-
-        if (jumpTime < TimeBetweenJumps)
-        {
-            velocity.Y = SmallHop;
-        }
-        else if (jumpTime < 2 * TimeBetweenJumps)
-        {
-            velocity.Y = MediumHop;
-        }
-        else if (jumpTime < 3 * TimeBetweenJumps)
-        {
-            velocity.Y = HighHop;
-            isMaxJump = true;
-        }
-
-        if (isMaxJump || !Input.IsActionPressed(InputJump))
-        {
-            isJumping = false;
-            jumpTime = 0.0f;
-        }
-
-        return isJumping;
-    }
-
-    private bool CanJump()
-    {
-        return IsOnFloor() || isLedgeGrabbing || isClimbing;
-    }
-
-    private void ApplyHorizontalVelocity(ref Vector2 velocity, double delta)
-    {
-        if (isLedgeGrabbing)
-            return;
-        // Handle input for horizontal movement
-        int direction = GetHorizontalInput();
-
-        if (direction != 0)
-        {
-            velocity.X += direction * Acceleration * (float)delta;
-        }
-        else
-        {
-            int sign = Math.Sign(velocity.X);
-            velocity.X -= sign * Friction * (float)delta;
-            bool frictionOvershot = Math.Sign(velocity.X) != sign;
-            if (frictionOvershot)
-            {
-                velocity.X = 0f;
-            }
-        }
-        // clamp horizontal
-        var maxSpeed = Speed;
-        if (isAttacking && IsOnFloor())
-        {
-            maxSpeed = SpeedWhileAttacking;
-        }
-        velocity.X = Mathf.Clamp(velocity.X, -maxSpeed, maxSpeed);
-    }
-
-    private void ApplyGravity(ref Vector2 velocity, double delta)
-    {
-        if (isLedgeGrabbing || isClimbing)
-            return;
-        velocity.Y += Gravity * (float)delta;
-    }
-
-    private bool isLedgeGrabbing = false;
-
-    private bool ApplyLedgeGrab(ref Vector2 velocity, double delta)
-    {
-        // test if we can begin ledge grabbing
-        if (!isLedgeGrabbing && !IsOnFloor() && Velocity.Y > 0)
-        {
-            int playerDirection = GetHorizontalInput();
-            // TODO, channel?
-            Vector2 ledgeDetectorCollision = ledgeDetector.GetCollisionPoint();
-            float collisionOffsetX = ledgeDetectorCollision.X - GlobalPosition.X;
-            int directionOfLedge = Math.Sign(collisionOffsetX);
-
-            if (ledgeDetector.IsColliding() && directionOfLedge == playerDirection) //&& !freeSpaceChecker.IsColliding())
-            {
-                isLedgeGrabbing = true;
-                velocity = Vector2.Zero;
-
-                GD.Print("Begin ledge grab");
-                // Snap to grab position
-                Vector2 collisionOffset = ledgeDetectorCollision - ledgeDetector.GlobalPosition;
-                GlobalPosition = GlobalPosition + collisionOffset;
-            }
-        }
-        // test to exit ledge grab
-        else if (isLedgeGrabbing && Input.IsActionJustPressed(InputDown))
-        {
-            isLedgeGrabbing = false;
-            velocity.Y = 100;
-
-            GD.Print("End ledge grab");
-        }
-
-        return isLedgeGrabbing;
-    }
-
-    private int GetHorizontalInput()
-    {
-        int direction = 0;
-        if (Input.IsActionPressed(InputRight))
-        {
-            direction += 1;
-        }
-        else if (Input.IsActionPressed(InputLeft))
-        {
-            direction += -1;
-        }
-        return direction;
+        return GetInput().Axis.X;
     }
 
     private void ApplyPlayerOrientation(ref Vector2 velocity)
@@ -458,66 +219,9 @@ public partial class Player : CharacterBody2D
         body.Scale = new Vector2(direction * originalBodyScale.X, originalBodyScale.Y);
     }
 
-    [Export]
-    private float climbUpSpeed = -50f;
 
-    [Export]
-    private float climbDownSpeed = 200f;
 
-    private bool isClimbing = false;
 
-    private void ApplyClimb(ref Vector2 velocity, double delta)
-    {
-        // no ladder climbing while ledge grabbing
-        if (isLedgeGrabbing)
-            return;
-
-        if (!isClimbing && Input.IsActionPressed(InputUp) && ladderDetector.IsColliding())
-        {
-            GD.Print("Climbing: start");
-            isClimbing = true;
-        }
-
-        if (isClimbing && !ladderDetector.IsColliding())
-        {
-            GD.Print("Climbing: stop");
-            isClimbing = false;
-        }
-
-        if (!isClimbing)
-            return;
-
-        if (Input.IsActionPressed(InputUp))
-        {
-            velocity.Y = climbUpSpeed;
-        }
-        else if (Input.IsActionPressed(InputDown))
-        {
-            velocity.Y = climbDownSpeed;
-        }
-        else
-        {
-            velocity.Y = 0;
-        }
-    }
-
-    private static string ScenePath = "res://scripts/game/Player.tscn";
-
-    public static Player Create()
-    {
-        return NodeUtils.CreateFromScene<Player>(ScenePath);
-    }
-
-    // new stuffs
-    public PlayerState State;
-    public void ChangeState(PlayerState state, double delta) {
-        State.Exit();
-        State = state;
-        State.Enter();
-        if (delta > 0) {
-            State.Update(delta);
-        }
-    }
     public PlayerInput GetInput() {
         var inputVector = new Vector2();
         if (Input.IsActionPressed(InputLeft)) {
@@ -565,6 +269,13 @@ public partial class Player : CharacterBody2D
     }
     public bool IsAtTopOfLadder() {
         return ladderDetector.IsColliding() && !ladderTopDetector.IsColliding();
+    }
+
+    private static string ScenePath = "res://scripts/game/Player.tscn";
+
+    public static Player Create()
+    {
+        return NodeUtils.CreateFromScene<Player>(ScenePath);
     }
 }
 

@@ -9,6 +9,9 @@ public class GroundMovement : PlayerState
     [Export]
     public float Speed = 4500f; 
 
+    [Export]
+    public float SpeedWhileAttacking = 30f; // Maximum horizontal speed
+
     public GroundMovement(Player player) : base(player) {}
 
     public override PlayerStateType NextState() {
@@ -43,6 +46,9 @@ public class GroundMovement : PlayerState
         }
       }
       ApplyGravity(ref velocity, delta);
+      if (player.IsAttacking()) {
+        velocity.X = Mathf.Clamp(velocity.X, -SpeedWhileAttacking, SpeedWhileAttacking);
+      }
       player.Velocity = velocity;
       
     }
