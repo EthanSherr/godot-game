@@ -402,7 +402,8 @@ public partial class RoomGenerator : Node2D
                 GD.Print($"hallway2 {grid}");
                 tileMapper.UnfillCell(grid);
                 // move to more convenient, ladders in all vertical hallways
-                if (h.Orientation == Hallway.OrientationType.Vertical) {
+                if (h.Orientation == Hallway.OrientationType.Vertical)
+                {
                     tileMapper.AddLadder(grid);
                 }
             }
@@ -442,7 +443,7 @@ public partial class RoomGenerator : Node2D
         player.Position = spawn.Position + new Vector2(Constants.GridSize / 2, Constants.GridSize);
         player.ZIndex = 10000;
         AddChild(player);
-        
+
         player.Initialize();
         GameManager.Instance.PossessCharacter(player);
     }

@@ -26,7 +26,8 @@ public partial class TileMapper : Node2D
         mapLayer.SetCell(Position, IMAGE_SOURCE);
     }
 
-    public void AddLadder(Vector2I Position) {
+    public void AddLadder(Vector2I Position)
+    {
         int IMAGE_SOURCE = 0;
         Vector2I AtlastCoordsx = new Vector2I(5, 11);
         mapLayer.SetCell(Position, IMAGE_SOURCE, AtlastCoordsx);

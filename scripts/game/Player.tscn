@@ -7,6 +7,21 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6r0om"]
 size = Vector2(5, 14)
 
+[sub_resource type="Animation" id="Animation_npjgv"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Body:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [15]
+}
+
 [sub_resource type="Animation" id="Animation_08o04"]
 resource_name = "attack"
 length = 0.65
@@ -134,21 +149,6 @@ tracks/0/keys = {
 "values": [2, 3, 4, 5, 6, 7, 8, 9]
 }
 
-[sub_resource type="Animation" id="Animation_npjgv"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("Body:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [15]
-}
-
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_3c0v4"]
 _data = {
 "RESET": SubResource("Animation_npjgv"),
@@ -186,8 +186,13 @@ position = Vector2(-0.5, -7)
 shape = SubResource("RectangleShape2D_6r0om")
 
 [node name="LadderDetector" type="RayCast2D" parent="."]
-visible = false
 position = Vector2(0, -8)
+target_position = Vector2(0, -5)
+collision_mask = 2
+hit_from_inside = true
+
+[node name="LadderTopDetector" type="RayCast2D" parent="."]
+position = Vector2(0, -13)
 target_position = Vector2(0, -5)
 collision_mask = 2
 hit_from_inside = true
