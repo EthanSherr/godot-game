@@ -65,7 +65,6 @@ public partial class Player : CharacterBody2D
         }
     }
 
-
     public override void _PhysicsProcess(double delta)
     {
         Movement.Update(delta);
@@ -76,12 +75,12 @@ public partial class Player : CharacterBody2D
 
     bool isAttacking = false;
 
-    public bool IsAttacking() {
+    public bool IsAttacking()
+    {
         return isAttacking;
     }
 
-
-    public override void _Process(double delta) 
+    public override void _Process(double delta)
     {
         if (Input.IsKeyPressed(Key.Ctrl) && !isAttacking)
         {
@@ -96,10 +95,9 @@ public partial class Player : CharacterBody2D
         {
             return;
         }
-        
-        
+
         var playerState = Movement.GetPlayerState();
-        
+
         if (playerState == PlayerStateType.LadderClimb)
         {
             var epsilon = 5;
@@ -141,9 +139,12 @@ public partial class Player : CharacterBody2D
         }
         else if (playerState == PlayerStateType.Ground)
         {
-            if (Mathf.Abs(Velocity.X) > 0) {
+            if (Mathf.Abs(Velocity.X) > 0)
+            {
                 animationPlayer.Play("walk_right");
-            } else {
+            }
+            else
+            {
                 animationPlayer.Play("idle");
             }
         }
@@ -151,9 +152,12 @@ public partial class Player : CharacterBody2D
 
     private void attack()
     {
-        switch (Movement.GetPlayerState()) {
-            case PlayerStateType.LadderClimb: return;
-            case PlayerStateType.LedgeGrab: return;
+        switch (Movement.GetPlayerState())
+        {
+            case PlayerStateType.LadderClimb:
+                return;
+            case PlayerStateType.LedgeGrab:
+                return;
         }
         isAttacking = true;
         meleAttachment.Visible = true;
@@ -217,34 +221,38 @@ public partial class Player : CharacterBody2D
         body.Scale = new Vector2(direction * originalBodyScale.X, originalBodyScale.Y);
     }
 
-
-
-
-    public PlayerInput GetInput() {
+    public PlayerInput GetInput()
+    {
         var inputVector = new Vector2();
-        if (Input.IsActionPressed(InputLeft)) {
+        if (Input.IsActionPressed(InputLeft))
+        {
             inputVector.X += -1;
         }
-        if (Input.IsActionPressed(InputRight)) {
+        if (Input.IsActionPressed(InputRight))
+        {
             inputVector.X += 1;
         }
-        if (Input.IsActionPressed(InputUp)) {
+        if (Input.IsActionPressed(InputUp))
+        {
             inputVector.Y += -1;
         }
-        if (Input.IsActionPressed(InputDown)) {
+        if (Input.IsActionPressed(InputDown))
+        {
             inputVector.Y += 1;
         }
         var jumpHeld = Input.IsActionPressed(InputJump);
         var jumpStart = Input.IsActionJustPressed(InputJump);
-        
-        return new PlayerInput{
+
+        return new PlayerInput
+        {
             Axis = inputVector,
             JumpStart = jumpStart,
             JumpHeld = jumpHeld,
         };
     }
 
-    public (bool canLedgeGrab, Vector2 offset) GetLedgeGrabInfo() {
+    public (bool canLedgeGrab, Vector2 offset) GetLedgeGrabInfo()
+    {
         int playerDirection = Math.Sign(GetHorizontalInput());
         Vector2 ledgeDetectorCollision = ledgeDetector.GetCollisionPoint();
         float collisionOffsetX = ledgeDetectorCollision.X - GlobalPosition.X;
@@ -262,10 +270,13 @@ public partial class Player : CharacterBody2D
         return (isLedgeGrabbing, collisionOffset);
     }
 
-    public bool CanClimbLadder() {
+    public bool CanClimbLadder()
+    {
         return ladderDetector.IsColliding();
     }
-    public bool IsAtTopOfLadder() {
+
+    public bool IsAtTopOfLadder()
+    {
         return ladderDetector.IsColliding() && !ladderTopDetector.IsColliding();
     }
 
@@ -276,5 +287,3 @@ public partial class Player : CharacterBody2D
         return NodeUtils.CreateFromScene<Player>(ScenePath);
     }
 }
-
-
