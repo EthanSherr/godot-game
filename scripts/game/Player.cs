@@ -11,8 +11,6 @@ public partial class Player : CharacterBody2D
 
     private static string Attack = "ui_accept";
 
-
-
     private RayCast2D ledgeDetector;
     private Sprite2D body;
 
