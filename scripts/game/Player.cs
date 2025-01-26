@@ -256,21 +256,24 @@ public partial class Player : CharacterBody2D
 
     public (bool canLedgeGrab, Vector2 offset) GetLedgeGrabInfo()
     {
+        if (isAttacking)
+        {
+            return (false, new Vector2());
+        }
         int playerDirection = Math.Sign(GetHorizontalInput());
         Vector2 ledgeDetectorCollision = ledgeDetector.GetCollisionPoint();
         float collisionOffsetX = ledgeDetectorCollision.X - GlobalPosition.X;
         int directionOfLedge = Math.Sign(collisionOffsetX);
-        var isLedgeGrabbing = ledgeDetector.IsColliding() && directionOfLedge == playerDirection;
+        var canLedgeGrab = ledgeDetector.IsColliding() && directionOfLedge == playerDirection;
 
         Vector2 collisionOffset = new Vector2();
-        if (isLedgeGrabbing) //&& !freeSpaceChecker.IsColliding())
+        if (canLedgeGrab)
         {
-            GD.Print("Begin ledge grab");
             // Snap to grab position
             collisionOffset = ledgeDetectorCollision - ledgeDetector.GlobalPosition;
         }
 
-        return (isLedgeGrabbing, collisionOffset);
+        return (canLedgeGrab, collisionOffset);
     }
 
     public bool CanClimbLadder()
