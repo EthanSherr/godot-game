@@ -12,4 +12,5 @@ public class CollisionLayers
     public const uint ROOM = 1 << 3;
     public const uint Item = 1 << 4;
     public const uint Damageable = 1 << 5;
+    public const uint OnewayPlatform = 1 << 6;
 }

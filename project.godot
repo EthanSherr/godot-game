@@ -53,6 +53,7 @@ ui_up={
 2d_physics/layer_4="Room"
 2d_physics/layer_5="Item"
 2d_physics/layer_6="Damageable"
+2d_physics/layer_7="OnewayPlatform"
 
 [rendering]
 

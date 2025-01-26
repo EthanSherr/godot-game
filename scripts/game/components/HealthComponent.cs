@@ -13,7 +13,7 @@ public partial class HealthComponent : Node2D
 
     public void TakeDamage(float damage)
     {
-        GD.Print($"Take {damage}");
+        _ = DamageDisplayManager.ShowDamage(GlobalPosition, 5, this);
         Health -= damage;
         if (Health < 0)
         {

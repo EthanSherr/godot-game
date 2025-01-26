@@ -46,6 +46,10 @@ public partial class MovementComponent : Node
             { PlayerStateType.Fall, new FallMovement(player) },
             { PlayerStateType.LedgeGrab, new LedgeGrabMovement(player) },
             { PlayerStateType.LadderClimb, new LadderClimbMovement(player) },
+            {
+                PlayerStateType.DropThroughPlatformMovement,
+                new DropThroughPlatformMovement(player)
+            },
         };
         TransitionState(PlayerStateType.Ground);
     }

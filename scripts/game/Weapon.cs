@@ -26,13 +26,11 @@ public partial class Weapon : Node2D
 
     public void BeginDamage()
     {
-        GD.Print("weapon enable");
         ray.Enabled = true;
     }
 
     public void EndDamage()
     {
-        GD.Print("weapon disable");
         ray.Enabled = false;
         damageTracker.Clear();
     }

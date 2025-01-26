@@ -23,6 +23,10 @@ public class GroundMovement : PlayerState
             return PlayerStateType.LadderClimb;
         }
         var isOnFloor = player.IsOnFloor();
+        if (player.IsOnOnewayPlatform() && input.Axis.Y > 0 && input.JumpStart)
+        {
+            return PlayerStateType.DropThroughPlatformMovement;
+        }
         if (input.JumpStart && isOnFloor)
         {
             return PlayerStateType.Jump;
@@ -31,6 +35,7 @@ public class GroundMovement : PlayerState
         {
             return PlayerStateType.Fall;
         }
+
         return PlayerStateType.None;
     }
 

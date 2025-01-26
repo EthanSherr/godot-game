@@ -200,9 +200,17 @@ hit_from_inside = true
 [node name="Camera2D" type="Camera2D" parent="."]
 visible = false
 zoom = Vector2(4.5, 4.5)
+position_smoothing_enabled = true
 metadata/_edit_lock_ = true
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {
 "": SubResource("AnimationLibrary_3c0v4")
 }
+
+[node name="OnewayPlatformCollider" type="RayCast2D" parent="."]
+visible = false
+position = Vector2(2.38419e-07, -9)
+scale = Vector2(1.125, 1.125)
+target_position = Vector2(-2.11928e-07, 9.77778)
+collision_mask = 64

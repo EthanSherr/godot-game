@@ -20,6 +20,8 @@ public partial class Player : CharacterBody2D
     private RayCast2D ladderDetector;
     private RayCast2D ladderTopDetector;
 
+    private RayCast2D onewayPlatformCollider;
+
     private AnimationPlayer animationPlayer;
 
     private Node2D meleAttachment;
@@ -37,9 +39,10 @@ public partial class Player : CharacterBody2D
         ledgeDetector = GetNode<RayCast2D>("Body/LedgeDetector");
         ladderDetector = GetNode<RayCast2D>("LadderDetector");
         ladderTopDetector = GetNode<RayCast2D>("LadderTopDetector");
+        onewayPlatformCollider = GetNode<RayCast2D>("OnewayPlatformCollider");
         Camera = GetNode<Camera2D>("Camera2D");
         body = GetNode<Sprite2D>("Body");
-        // initialize the meleattachment
+        // initialize the meleattachments
         meleAttachment = GetNode<Node2D>("Body/MeleAttachment");
         meleAttachment.Visible = false;
 
@@ -278,6 +281,11 @@ public partial class Player : CharacterBody2D
     public bool IsAtTopOfLadder()
     {
         return ladderDetector.IsColliding() && !ladderTopDetector.IsColliding();
+    }
+
+    public bool IsOnOnewayPlatform()
+    {
+        return IsOnFloor() && onewayPlatformCollider.IsColliding();
     }
 
     private static string ScenePath = "res://scripts/game/Player.tscn";

@@ -20,6 +20,7 @@ public enum PlayerStateType
     Fall,
     LedgeGrab,
     LadderClimb,
+    DropThroughPlatformMovement,
 }
 
 public abstract class PlayerState

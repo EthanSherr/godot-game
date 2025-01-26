@@ -26,6 +26,7 @@ position = Vector2(0, -5.5)
 shape = SubResource("RectangleShape2D_i3uoe")
 
 [node name="HealthComponent" parent="." instance=ExtResource("3_3110p")]
+position = Vector2(0, -12)
 MaxHealth = 5.0
 
 [node name="DamageAreaComponent" parent="." node_paths=PackedStringArray("HealthComponent") instance=ExtResource("4_yni2a")]
