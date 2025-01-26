@@ -291,7 +291,7 @@ public partial class Player : CharacterBody2D
         return IsOnFloor() && onewayPlatformCollider.IsColliding();
     }
 
-    private static string ScenePath = "res://scripts/game/Player.tscn";
+    private static string ScenePath = "res://player/Player.tscn";
 
     public static Player Create()
     {

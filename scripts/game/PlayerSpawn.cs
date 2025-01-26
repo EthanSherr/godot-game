@@ -14,7 +14,7 @@ public partial class PlayerSpawn : Node2D
         }
     }
 
-    private const string SpawnScenePath = "res://scripts/game/PlayerSpawn.tscn";
+    private const string SpawnScenePath = "res://player/PlayerSpawn.tscn";
 
     public static PlayerSpawn Create()
     {
