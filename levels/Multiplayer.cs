@@ -13,10 +13,7 @@ public partial class Multiplayer : Node2D
 
         Host.Pressed += OnHost;
         Join.Pressed += OnJoin;
-        MultiplayerManager.Instance.Connect(
-            nameof(MultiplayerManager.PeerConnected),
-            new Callable(this, nameof(OnPeerConnected))
-        );
+        MultiplayerManager.Instance.PeerConnected += OnPeerConnected;
     }
 
     public void OnPeerConnected(long peerId)
