@@ -38,12 +38,16 @@ public partial class MultiplayerManager : Node
         Multiplayer.MultiplayerPeer = clientPeer;
     }
 
+    [Signal]
+    public delegate void PeerConnectedEventHandler(long peerId);
+
     private void OnPeerConnected(long peerId)
     {
         GD.Print($"OnPeerConnected({peerId})");
-        var player = Player.Create();
-        player.PlayerId = peerId;
-        player.Name = peerId.ToString();
+        EmitSignal(nameof(PeerConnected), peerId);
+        // var player = Player.Create();
+        // player.PlayerId = peerId;
+        // player.Name = peerId.ToString();
     }
 
     private void OnPeerDisconnected(long peerId)

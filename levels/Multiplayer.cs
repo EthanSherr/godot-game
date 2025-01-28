@@ -13,6 +13,16 @@ public partial class Multiplayer : Node2D
 
         Host.Pressed += OnHost;
         Join.Pressed += OnJoin;
+        MultiplayerManager.Instance.Connect(
+            nameof(MultiplayerManager.PeerConnected),
+            new Callable(this, nameof(OnPeerConnected))
+        );
+    }
+
+    public void OnPeerConnected(long peerId)
+    {
+        // LoadCharacterSelectionScene for the peer that just connected!
+        RpcId((int)peerId, nameof(LoadCharacterSelectionScene));
     }
 
     private void OnHost()
@@ -23,23 +33,19 @@ public partial class Multiplayer : Node2D
 
     private void OnJoin()
     {
-        GD.Print("on join");
         MultiplayerManager.Instance.Join();
     }
 
-    // // [Remote]
-    // private void RequestCharacterSelection()
-    // {
-    //     // Only the host should trigger scene loading for everyone
-    //     if (MultiplayerManager.Instance.IsHost())
-    //     {
-    //         Rpc(nameof(LoadCharacterSelectionScene));
-    //     }
-    // }
-
-
+    [Rpc(
+        MultiplayerApi.RpcMode.AnyPeer,
+        CallLocal = true,
+        TransferMode = MultiplayerPeer.TransferModeEnum.Reliable
+    )]
     private void LoadCharacterSelectionScene()
     {
-        GetTree().ChangeSceneToFile("res://levels/CharacterSelection.tscn");
+        var charSelectionPath = "res://levels/CharacterSelection.tscn";
+        var charSelectionScene = NodeUtils.CreateFromScene<Node2D>(charSelectionPath);
+        GetTree().Root.AddChild(charSelectionScene);
+        this.Hide();
     }
 }
