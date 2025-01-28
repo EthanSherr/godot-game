@@ -49,3 +49,8 @@ https://www.youtube.com/watch?v=VJHrIP-_tHU&list=PL6Ikt4l3NbVi_9_-TqX-JUsJ9nIFeY
 
 # neat multiplayer
 https://www.youtube.com/watch?v=V4a_J38XdHk&t=45s
+
+https://www.youtube.com/watch?v=V4a_J38XdHk&t=228s
+
+# high level multiplay godot c#
+https://docs.godotengine.org/en/stable/tutorials/networking/high_level_multiplayer.html

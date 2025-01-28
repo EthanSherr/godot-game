@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://cl5xmisg1fr16"]
+
+[ext_resource type="TileSet" uid="uid://ishqqhthyhjw" path="res://scripts/generation/DungeonTileSet.tres" id="1_vfvg8"]
+
+[node name="Lobby" type="Node2D"]
+
+[node name="TileMapLayer" type="TileMapLayer" parent="."]
+tile_set = ExtResource("1_vfvg8")

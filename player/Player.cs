@@ -34,6 +34,8 @@ public partial class Player : CharacterBody2D
 
     public MovementComponent Movement;
 
+    public long PlayerId = 1;
+
     public void Initialize()
     {
         ledgeDetector = GetNode<RayCast2D>("Body/LedgeDetector");
